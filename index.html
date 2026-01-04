@@ -276,16 +276,7 @@
       </div>
 
 <script>
-  function toggleOverlay(id, show) {
-  const el = document.getElementById(id);
-  if (el) {
-    el.style.display = show ? 'block' : 'none';
-    // Prevent background scrolling when overlay is open
-    document.body.style.overflow = show ? 'hidden' : 'auto';
-  }
-}
-
-function initPayPal() {
+  function initPayPal() {
         if (window.paypal && window.paypal.HostedButtons) {
           paypal.HostedButtons({
             hostedButtonId: "YRL4XTQAURYDS",
@@ -298,7 +289,16 @@ function initPayPal() {
 
       // Initialize PayPal
       initPayPal();
-
+  
+  function toggleOverlay(id, show) {
+  const el = document.getElementById(id);
+  if (el) {
+    el.style.display = show ? 'block' : 'none';
+    // Prevent background scrolling when overlay is open
+    document.body.style.overflow = show ? 'hidden' : 'auto';
+  }
+}
+  
 // (Keep addGroup, addSubTask, and move functions from previous version)
 function addGroup() {
     const id = Date.now();
