@@ -276,20 +276,6 @@
       </div>
 
 <script>
-  function initPayPal() {
-        if (window.paypal && window.paypal.HostedButtons) {
-          paypal.HostedButtons({
-            hostedButtonId: "YRL4XTQAURYDS",
-          }).render("#paypal-container-YRL4XTQAURYDS");
-        } else {
-          // Check again if SDK not loaded yet
-          setTimeout(initPayPal, 500);
-        }
-      }
-
-      // Initialize PayPal
-      initPayPal();
-  
   function toggleOverlay(id, show) {
   const el = document.getElementById(id);
   if (el) {
@@ -298,6 +284,20 @@
     document.body.style.overflow = show ? 'hidden' : 'auto';
   }
 }
+
+  window.addEventListener('load', () => {
+    // Delay PayPal by 1 second to let the Scheduler initialize first
+    setTimeout(() => {
+      if (window.paypal && window.paypal.HostedButtons) {
+        paypal.HostedButtons({
+          hostedButtonId: "YRL4XTQAURYDS",
+        }).render("#paypal-container-YRL4XTQAURYDS");
+      }
+    }, 1000); 
+  });
+
+  // Initial setup
+  addGroup()
   
 // (Keep addGroup, addSubTask, and move functions from previous version)
 function addGroup() {
@@ -434,5 +434,5 @@ function calculate() {
 addGroup();
 addBacklog();
 </script>
-  </body>
+    </body>
 </html>
