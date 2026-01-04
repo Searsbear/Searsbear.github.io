@@ -12,10 +12,6 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-<script 
-  src="https://www.paypal.com/sdk/js?client-id=BAAnaHUwCT8QU_1UD3v5D5KN6MJ7e2ZJkTRd5kS8aBphv7vWegeq2txRBuZsdRv9wX8XOxH-GL3D6BaxaM&components=hosted-buttons&disable-funding=venmo&currency=CAD">
-</script>
-
     <style>
       /* --- BASE THEME & OVERLAYS --- */
       .full-overlay {
@@ -244,6 +240,15 @@
             <strong>Apartment Maintenance:</strong><br>
             Review the "Invisible Tasks" guide in your documentation.
         </div>
+        <div class="resource-item">
+              </div>
+<div id="paypal-container-YRL4XTQAURYDS"></div>
+<script>
+  paypal.HostedButtons({
+    hostedButtonId: "YRL4XTQAURYDS",
+  }).render("#paypal-container-YRL4XTQAURYDS")
+</script>
+      </div>
 
       </div>
     </div>
@@ -272,13 +277,7 @@
             <div id="output" class="output"></div>
         </div>
       </div>
-    </div>
-<div id="paypal-container-YRL4XTQAURYDS"></div>
-<script>
-  paypal.HostedButtons({
-    hostedButtonId: "YRL4XTQAURYDS",
-  }).render("#paypal-container-YRL4XTQAURYDS")
-</script>
+
 <script>
   function toggleOverlay(id, show) {
   const el = document.getElementById(id);
@@ -424,5 +423,8 @@ function calculate() {
 addGroup();
 addBacklog();
 </script>
+    <script 
+  src="https://www.paypal.com/sdk/js?client-id=BAAnaHUwCT8QU_1UD3v5D5KN6MJ7e2ZJkTRd5kS8aBphv7vWegeq2txRBuZsdRv9wX8XOxH-GL3D6BaxaM&components=hosted-buttons&disable-funding=venmo&currency=CAD">
+    </script>
   </body>
 </html>
