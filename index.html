@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#020617" />
+    <title>Pay & Budget Matrix</title>
+    <script type="module" crossorigin src="/assets/index-CagdDJkF.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-DvBTMve7.css">
+    
+    <meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+
+    <style>
+      /* --- BASE THEME & OVERLAYS --- */
+      .full-overlay {
+        display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: #020617; z-index: 10000; overflow-y: auto; padding: 15px; box-sizing: border-box;
+      }
+      .close-btn { color: #ef4444; font-family: monospace; cursor: pointer; display: block; margin-bottom: 20px; font-weight: bold; text-align: right; }
+      
+      .cat-legal { color: #10b981; border-color: #10b981; }
+      .cat-transport { color: #f59e0b; border-color: #f59e0b; }
+      .cat-city { color: #a855f7; border-color: #a855f7; }
+      .cat-health { color: #f43f5e; border-color: #f43f5e; }
+      .cat-life { color: #94a3b8; border-color: #94a3b8; }
+
+      .resource-item {
+        display: block; background: #0f172a; border: 1px solid #1e293b;
+        padding: 12px; margin-bottom: 8px; color: #e2e8f0;
+        text-decoration: none; font-family: monospace; font-size: 0.85rem; line-height: 1.4;
+      }
+      .resource-item:hover { background: #1e293b; }
+      .resource-header { font-family: monospace; margin-top: 25px; padding-bottom: 5px; border-bottom: 1px solid #1e293b; text-transform: uppercase; font-size: 1rem; }
+      .link-text { text-decoration: underline; font-weight: bold; }
+
+      /* --- SCHEDULER STYLES (MOBILE OPTIMIZED) --- */
+      #scheduler-content { color: #e2e8f0; font-family: monospace; width: 100%; }
+      .panel { background: #0f172a; padding: 15px; border-radius: 4px; border: 1px solid #1e293b; margin-bottom: 20px; box-sizing: border-box; }
+      
+      .scheduler-grid { 
+          display: grid; 
+          grid-template-columns: 1fr; 
+          gap: 15px; 
+      }
+      @media (min-width: 768px) {
+          .scheduler-grid { grid-template-columns: 1fr 1fr; }
+      }
+
+      .group-container { border: 1px solid #334155; padding: 12px; border-radius: 4px; margin-bottom: 15px; background: #020617; box-sizing: border-box; }
+      .sub-task, .backlog-item { 
+          background: #1e293b; padding: 8px; margin-top: 8px; border-radius: 4px; 
+          border-left: 4px solid #10b981; display: flex; align-items: center; gap: 5px; color: #f1f5f9; flex-wrap: wrap;
+      }
+      .backlog-item { border-left-color: #a855f7; }
+
+      .output { background: #020617; color: #f1f5f9; padding: 15px; border: 1px solid #10b981; border-radius: 4px; margin-top: 20px; font-family: monospace; word-wrap: break-word; }
+      .time-mark { color: #10b981; font-weight: bold; }
+      
+      .scheduler-btn { cursor: pointer; padding: 8px; border-radius: 4px; background: #1e293b; color: #10b981; border: 1px solid #10b981; font-family: monospace; font-weight: bold; font-size: 14px; }
+      .btn-move { background: #334155; color: #f1f5f9; border: 1px solid #475569; padding: 4px 8px; }
+      .btn-del { background: #450a0a; color: #f87171; border: 1px solid #991b1b; margin-left: auto; }
+
+      input[type="text"], input[type="number"], input[type="time"], select {
+          background: #020617; border: 1px solid #334155; color: #f1f5f9; padding: 8px; border-radius: 4px; font-family: monospace; font-size: 16px; 
+          max-width: 100%; box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body class="bg-slate-950 text-slate-200 antialiased">
+
+    <div style="padding: 15px; text-align: center; border-bottom: 1px solid #1e293b; position: sticky; top:0; background:#020617; z-index:100;">
+        <button onclick="toggleOverlay('resource-menu', true)" style="background: transparent; color: #10b981; border: 1px solid #10b981; padding: 12px; width: 100%; max-width: 400px; cursor: pointer; font-weight: bold; font-family: monospace;">[ OPEN RESOURCE DIRECTORY ]</button>
+    </div>
+
+    <div id="root"></div>
+
+    <div style="padding: 20px 15px 40px 15px; text-align: center;">
+        <button onclick="toggleOverlay('scheduler-panel', true)" style="background: #10b981; color: #020617; border: none; padding: 15px; width: 100%; max-width: 400px; font-weight: bold; cursor: pointer; border-radius: 4px; font-family: monospace;">📅 OPEN SCHEDULER</button>
+    </div>
+
+   
+    <div id="resource-menu" class="full-overlay">
+      <span class="close-btn" onclick="toggleOverlay('resource-menu', false)">← BACK TO MATRIX</span>
+      <div style="max-width:600px; margin:auto;">
+        
+        <h3 class="resource-header cat-legal">⚖️ Legal & Tenant Systems</h3>
+        <a href="https://www.tal.gouv.qc.ca/en" target="_blank" class="resource-item">
+            <strong>TAL (Housing Tribunal)</strong><br>
+            <span class="link-text" style="color: #10b981;">tal.gouv.qc.ca</span>
+        </a>
+        <a href="https://www.quebec.ca/en/businesses-and-self-employed-workers/getting-information-about-a-business/searching-for-a-business-in-the-enterprise-register" target="_blank" class="resource-item">
+            <strong>Quebec Business Registry</strong><br>
+            <span class="link-text" style="color: #10b981;">Registraire des entreprises</span>
+        </a>
+        <a href="https://ised-isde.canada.ca/cbr-rec/" target="_blank" class="resource-item">
+            <strong>Canada Business Registry</strong><br>
+            <span class="link-text" style="color: #10b981;">Corporations Canada Search</span>
+        </a>
+        <a href="https://citoyens.soquij.qc.ca/" target="_blank" class="resource-item">
+            <strong>SOQUIJ Judicial Decisions</strong><br>
+            <span class="link-text" style="color: #10b981;">citoyens.soquij.qc.ca</span>
+        </a>
+        <a href="https://montreal.ca/en/services/issues-inside-dwelling" target="_blank" class="resource-item">
+            <strong>Issues Inside a Dwelling</strong><br>
+            Heat, Sanitation, Rodents: <span class="link-text" style="color: #10b981;">Official Guide</span>
+        </a>
+        <a href="https://spvm.qc.ca/en/Search/Adresse" target="_blank" class="resource-item">
+            <strong>Find your local SPVM Station</strong><br>
+            <span class="link-text" style="color: #10b981;">Search by Address</span>
+        </a>
+        <a href="https://donnees.montreal.ca/" target="_blank" class="resource-item">
+            <strong>Montreal Open Data Portal</strong><br>
+            <span class="link-text" style="color: #10b981;">Geo files & Stats</span>
+        </a>
+
+        <h3 class="resource-header cat-health">🚨 Health & Crisis</h3>
+        <a href="tel:5144833033" class="resource-item">
+            <strong>TRACOM Crisis Centre</strong><br>
+            <span class="link-text" style="color: #f43f5e;">(514) 483-3033</span>
+        </a>
+
+        <h3 class="resource-header cat-transport">🚌 Transportation (Local & Regional)</h3>
+        <a href="https://www.stm.info/en" target="_blank" class="resource-item">
+            <strong>STM (Metro & Bus)</strong><br>
+            <span class="link-text" style="color: #f59e0b;">Official Maps & Info</span>
+        </a>
+        <a href="https://rem.info/en" target="_blank" class="resource-item">
+            <strong>REM (Light Rail)</strong><br>
+            <span class="link-text" style="color: #f59e0b;">rem.info | 1-833-REM-INFO</span>
+        </a>
+        <a href="https://exo.quebec/en" target="_blank" class="resource-item">
+            <strong>exo (Commuter Trains)</strong><br>
+            <span class="link-text" style="color: #f59e0b;">exo.quebec | (514) 287-8726</span>
+        </a>
+        <a href="https://stlaval.ca/home" target="_blank" class="resource-item">
+            <strong>STL (Laval Transit)</strong><br>
+            <span class="link-text" style="color: #f59e0b;">stlaval.ca | (450) 688-6520</span>
+        </a>
+        <a href="https://www.rtl-longueuil.qc.ca/en/" target="_blank" class="resource-item">
+            <strong>RTL (Longueuil Transit)</strong><br>
+            <span class="link-text" style="color: #f59e0b;">rtl-longueuil.qc.ca</span>
+        </a>
+        <div class="resource-item">
+            <strong>River Shuttles:</strong> 
+            <a href="https://www.navark.ca/en/" target="_blank" style="color:#f59e0b;">Navark</a> | 
+            <a href="https://www.croisieresaml.com/en/" target="_blank" style="color:#f59e0b;">Croisières AML</a>
+        </div>
+
+        <h3 class="resource-header cat-transport">🚆 Inter-City & International</h3>
+        <a href="https://www.viarail.ca/en" target="_blank" class="resource-item">
+            <strong>Via Rail Canada</strong><br>
+            <span class="link-text" style="color: #f59e0b;">Booking & Times</span>
+        </a>
+        <a href="https://www.gamontreal.com/en/" target="_blank" class="resource-item">
+            <strong>Gare d'autocars (Bus Terminal)</strong><br>
+            <span class="link-text" style="color: #f59e0b;">Berri-UQAM Station</span>
+        </a>
+        <div class="resource-item">
+            <strong>Regional Operators:</strong><br>
+            <a href="https://www.megabus.com/" target="_blank" style="color:#f59e0b;">Coach Canada/Megabus</a>, 
+            <a href="https://groupegalland.com/en/" target="_blank" style="color:#f59e0b;">Galland</a>, 
+            <a href="https://www.greyhound.com/" target="_blank" style="color:#f59e0b;">Greyhound</a>, 
+            <a href="https://intercar.aws/en/" target="_blank" style="color:#f59e0b;">Intercar</a>, 
+            <a href="https://limocar.ca/en/" target="_blank" style="color:#f59e0b;">Limocar</a>, 
+            <a href="https://www.orleansexpress.com/en/" target="_blank" style="color:#f59e0b;">Orléans Express</a>
+        </div>
+        <div class="resource-item">
+            <strong>Air & USA Rail:</strong><br>
+            <a href="https://www.admtl.com/en" target="_blank" style="color:#f59e0b;">Montréal-Trudeau (YUL)</a>, 
+            <a href="https://www.amtrak.com/adirondack-train" target="_blank" style="color:#f59e0b;">Amtrak (Adirondack)</a>
+        </div>
+
+        <h3 class="resource-header cat-city">🏙️ Montreal.ca City Portal</h3>
+        <div class="resource-item">
+            <strong>Data & History:</strong><br>
+            <a href="https://montreal.ca/en/topics/montreal-statistics" target="_blank" style="color:#a855f7;">Montréal en statistiques</a> | 
+            <a href="https://montreal.ca/en/services/historical-archives-search" target="_blank" style="color:#a855f7;">Historical Archives</a> | 
+            <a href="https://montreal.ca/en/services/learn-about-place-names" target="_blank" style="color:#a855f7;">Place Names (Toponyms)</a>
+        </div>
+        <div class="resource-item">
+            <strong>Planning & Maps:</strong><br>
+            <a href="https://montreal.ca/en/services/land-use-planning-interactive-maps" target="_blank" style="color:#a855f7;">Land Use Maps</a> | 
+            <a href="https://montreal.ca/en/services/view-heritage-databases" target="_blank" style="color:#a855f7;">Heritage Databases</a> | 
+            <a href="https://montreal.ca/en/services/index-montreals-main-streets" target="_blank" style="color:#a855f7;">Main Streets Index</a>
+        </div>
+        <div class="resource-item">
+            <strong>Infrastructure:</strong><br>
+            <a href="https://montreal.ca/en/services/obstructions-and-construction-info" target="_blank" style="color:#a855f7;">Construction Info</a> | 
+            <a href="https://montreal.ca/en/services/montreal-trucking-route-map" target="_blank" style="color:#a855f7;">Trucking Route Map</a> | 
+            <a href="https://montreal.ca/en/articles/lead-service-lines-map-8120" target="_blank" style="color:#a855f7;">Lead Service Lines</a>
+        </div>
+        <div class="resource-item">
+            <strong>Parking & EV:</strong><br>
+            <a href="https://montreal.ca/en/services/maps-paid-street-parking" target="_blank" style="color:#a855f7;">Paid Parking Map</a> | 
+            <a href="https://montreal.ca/en/services/motorcycle-parking-map" target="_blank" style="color:#a855f7;">Motorcycle Parking</a> | 
+            <a href="https://montreal.ca/en/services/map-charging-stations-electric-vehicles" target="_blank" style="color:#a855f7;">Charging Stations</a>
+        </div>
+        <div class="resource-item">
+            <strong>Winter:</strong><br>
+            <a href="https://montreal.ca/en/apps/info-neige" target="_blank" style="color:#a855f7;">INFO-Neige App</a> | 
+            <a href="https://montreal.ca/en/services/conditions-des-sites-hivernaux" target="_blank" style="color:#a855f7;">Winter Site Conditions</a>
+        </div>
+        <div class="resource-item">
+            <strong>Daily Life:</strong><br>
+            <a href="https://montreal.ca/en/topics/collection-schedules" target="_blank" style="color:#a855f7;">Collection Schedules</a> | 
+            <a href="https://montreal.ca/en/topics/ecocentres" target="_blank" style="color:#a855f7;">Ecocentres</a> | 
+            <a href="https://montreal.ca/en/how-to/recycle-used-batteries" target="_blank" style="color:#a855f7;">Battery Recycling</a> | 
+            <a href="https://montreal.ca/en/topics/community-gardens" target="_blank" style="color:#a855f7;">Community Gardens</a>
+        </div>
+        <div class="resource-item">
+            <strong>Library & Recreation:</strong><br>
+            <a href="https://montreal.ca/en/topics/library-subscription" target="_blank" style="color:#a855f7;">Library Card</a> | 
+            <a href="https://montreal.ca/en/services/borrow-pass-library-to-visit-museums" target="_blank" style="color:#a855f7;">Borrow Museum Pass</a> | 
+            <a href="https://montreal.ca/en/services/musical-instrument-loans" target="_blank" style="color:#a855f7;">Musical Instrument Loans</a> | 
+            <a href="https://montreal.ca/en/loisirs-montreal" target="_blank" style="color:#a855f7;">Loisirs Montréal (Sports)</a>
+        </div>
+        <div class="resource-item">
+            <strong>Public Space:</strong><br>
+            <a href="https://montreal.ca/en/articles/free-public-wi-fi-6869" target="_blank" style="color:#a855f7;">MTLWiFi Hotspots</a> | 
+            <a href="https://montreal.ca/en/articles/access-computer-or-tablet-6855" target="_blank" style="color:#a855f7;">Public Computer Access</a> | 
+            <a href="https://montreal.ca/en/topics/bicycle-network" target="_blank" style="color:#a855f7;">Bicycle Network Map</a>
+        </div>
+        <a href="https://realisons.montreal.ca/" target="_blank" class="resource-item">
+            <strong>Réalisons Montréal</strong><br>
+            Public Consultations: <span class="link-text" style="color: #a855f7;">realisons.montreal.ca</span>
+        </a>
+
+        <h3 class="resource-header cat-life">🛠️ Life Skills & Maintenance</h3>
+        <a href="https://noc.esdc.gc.ca" target="_blank" class="resource-item">
+            <strong>Career Search (NOC)</strong><br>
+            <span class="link-text" style="color: #94a3b8;">National Occupational Classification</span>
+        </a>
+        <div class="resource-item">
+            <strong>Pest Control Tip:</strong><br>
+            Use <span style="color: #94a3b8;">Diatomaceous Earth</span> for long-term protection.
+        </div>
+        <div class="resource-item">
+            <strong>Apartment Maintenance:</strong><br>
+            Review the "Invisible Tasks" guide in your documentation.
+        </div>
+
+      </div>
+    </div>
+
+    <div id="scheduler-panel" class="full-overlay">
+      <span class="close-btn" onclick="toggleOverlay('scheduler-panel', false)">← BACK TO MATRIX</span>
+      <div id="scheduler-content" style="max-width: 1000px; margin: auto;">
+        <div class="panel">
+            <h2 style="margin-top:0; color:#10b981; text-align:center;">[ CHAINED ROUTINE PLANNER ]</h2>
+            <div class="scheduler-grid">
+                <div>
+                    <h3 style="color:#10b981;">> Project Groups</h3>
+                    <div id="allGroups"></div>
+                    <button class="scheduler-btn" onclick="addGroup()" style="width:100%; margin-top:10px;">+ NEW PROJECT</button>
+                </div>
+                <div>
+                    <h3 style="color:#a855f7;">> Quick Task Backlog</h3>
+                    <div id="backlogContainer"></div>
+                    <button class="scheduler-btn" onclick="addBacklog()" style="border-color:#a855f7; color:#a855f7; margin-top:10px; width:100%;">+ ADD QUICK TASK</button>
+                </div>
+            </div>
+            <div style="text-align: center; margin: 20px 0; padding: 15px; background: #020617; border: 1px solid #1e293b;">
+                <strong>DEADLINE:</strong> <input type="time" id="deadline" value="17:00" onchange="saveData()">
+                <button class="scheduler-btn" onclick="calculate()" style="background:#10b981; color:#020617; margin-top:10px; width:100%; max-width:300px;">RUN OPTIMIZATION</button>
+            </div>
+            <div id="output" class="output"></div>
+        </div>
+      </div>
+    </div>
+
+<script>
+  function toggleOverlay(id, show) {
+  const el = document.getElementById(id);
+  if (el) {
+    el.style.display = show ? 'block' : 'none';
+    // Prevent background scrolling when overlay is open
+    document.body.style.overflow = show ? 'hidden' : 'auto';
+  }
+}
+
+// (Keep addGroup, addSubTask, and move functions from previous version)
+function addGroup() {
+    const id = Date.now();
+    const isFirst = document.querySelectorAll('.group-container').length === 0;
+    const div = document.createElement('div');
+    div.className = 'group-container';
+    div.innerHTML = `
+        <div class="link-style" ${isFirst ? 'style="display:none"' : ''} style="background:#fff3e0; padding:5px; margin-bottom:10px; font-size:0.8em;">
+            Link: <select class="g-link"><option value="parallel">Parallel</option><option value="sequential">After Previous</option></select>
+        </div>
+        <div style="display:flex; gap:5px; margin-bottom:10px;">
+            <button class="btn-move" onclick="move(this, 'up')">↑</button>
+            <button class="btn-move" onclick="move(this, 'down')">↓</button>
+            <input type="text" class="g-name" placeholder="Project Name" style="font-weight:bold; flex-grow:1">
+            <button class="btn-del" onclick="this.parentElement.parentElement.remove()">Remove</button>
+        </div>
+        <div id="steps-${id}"></div>
+        <button onclick="addSubTask('${id}')" style="background:#81ecec; color:black; font-size:0.8em">+ Step</button>
+    `;
+    document.getElementById('allGroups').appendChild(div);
+}
+
+function addSubTask(groupId) {
+    const container = document.getElementById(`steps-${groupId}`);
+    const div = document.createElement('div');
+    div.className = 'sub-task';
+    div.innerHTML = `<button class="btn-move" onclick="move(this, 'up')">↑</button><button class="btn-move" onclick="move(this, 'down')">↓</button><input type="text" class="s-name" placeholder="Step" style="width:100px"> <input type="number" class="s-active" value="10"> <input type="number" class="s-proc" value="30"><button class="btn-del" onclick="this.parentElement.remove()">X</button>`;
+    container.appendChild(div);
+}
+
+function move(btn, direction) {
+    const row = btn.parentElement;
+    if (direction === 'up' && row.previousElementSibling) row.parentNode.insertBefore(row, row.previousElementSibling);
+    if (direction === 'down' && row.nextElementSibling) row.parentNode.insertBefore(row.nextElementSibling, row);
+}
+
+function addBacklog() {
+    const div = document.createElement('div');
+    div.className = 'backlog-item';
+    div.innerHTML = `
+        <button class="btn-move" onclick="move(this, 'up')">↑</button>
+        <button class="btn-move" onclick="move(this, 'down')">↓</button>
+        <input type="text" class="b-name" placeholder="Quick Task" style="width:120px"> 
+        <input type="number" class="b-time" value="5" title="Minutes"> 
+        <label style="font-size:0.7em"><input type="checkbox" class="b-chain"> Chain to Next?</label>
+        <button class="btn-del" onclick="this.parentElement.remove()">X</button>
+    `;
+    document.getElementById('backlogContainer').appendChild(div);
+}
+
+function calculate() {
+    const masterDeadlineStr = document.getElementById('deadline').value;
+    const [h, m] = masterDeadlineStr.split(':');
+    const baseDeadline = new Date();
+    baseDeadline.setHours(h, m, 0);
+
+    // 1. Group Backlog items into "Routines" based on Chaining
+    let backlogElements = Array.from(document.querySelectorAll('.backlog-item'));
+    let routines = [];
+    let currentRoutine = [];
+
+    backlogElements.forEach((el, index) => {
+        let task = {
+            name: el.querySelector('.b-name').value || "Task",
+            time: parseInt(el.querySelector('.b-time').value) || 0,
+            used: false
+        };
+        currentRoutine.push(task);
+        
+        if (!el.querySelector('.b-chain').checked) {
+            routines.push({ tasks: currentRoutine, totalTime: currentRoutine.reduce((sum, t) => sum + t.time, 0), used: false });
+            currentRoutine = [];
+        } else if (index === backlogElements.length - 1) {
+            routines.push({ tasks: currentRoutine, totalTime: currentRoutine.reduce((sum, t) => sum + t.time, 0), used: false });
+        }
+    });
+
+    // 2. Process Projects (Backward Logic)
+    let groupElements = Array.from(document.querySelectorAll('.group-container'));
+    let groupData = groupElements.map((el, index) => ({
+        name: el.querySelector('.g-name').value || `Project ${index+1}`,
+        link: el.querySelector('.g-link')?.value || 'parallel',
+        steps: Array.from(el.querySelectorAll('.sub-task')).map(s => ({
+            name: s.querySelector('.s-name').value || "Step",
+            active: parseInt(s.querySelector('.s-active').value) || 0,
+            proc: parseInt(s.querySelector('.s-proc').value) || 0
+        })).reverse()
+    }));
+
+    let computedGroups = [];
+    let nextNeededStart = new Date(baseDeadline);
+
+    for (let i = groupData.length - 1; i >= 0; i--) {
+        let group = groupData[i];
+        let deadlineForThisGroup = (i < groupData.length - 1 && groupData[i+1].link === 'sequential') ? new Date(nextNeededStart) : new Date(baseDeadline);
+
+        let tempTime = new Date(deadlineForThisGroup);
+        let timeline = [];
+        group.steps.forEach(step => {
+            let finish = new Date(tempTime);
+            tempTime.setMinutes(tempTime.getMinutes() - (step.active + step.proc));
+            timeline.push({ ...step, start: new Date(tempTime), finish: finish });
+        });
+        nextNeededStart = new Date(tempTime);
+        computedGroups.unshift({ name: group.name, timeline: timeline.reverse() });
+    }
+
+    // 3. Render and Slot Routines
+    let html = `<h2>Master Timeline (Chained Routines)</h2>`;
+    computedGroups.forEach(group => {
+        html += `<h3 style="border-bottom: 2px solid #55efc4; color:#55efc4; margin-top:20px;">${group.name}</h3>`;
+        group.timeline.forEach(item => {
+            html += `<div style="margin-bottom:10px; border-left:2px solid #555; padding-left:15px;">
+                <span class="time-mark">${item.start.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>: <b>${item.name}</b> (${item.active}m)`;
+            
+            let gapRemaining = item.proc;
+            routines.forEach(routine => {
+                if (!routine.used && routine.totalTime <= gapRemaining && routine.totalTime > 0) {
+                    routine.tasks.forEach(t => {
+                        html += `<div style="margin-left:20px; color:#a29bfe;">🔗 Routine: ${t.name} (${t.time}m)</div>`;
+                    });
+                    gapRemaining -= routine.totalTime;
+                    routine.used = true;
+                }
+            });
+            html += `<br><span class="time-mark">${item.finish.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>: Phase Ends</div>`;
+        });
+    });
+
+    document.getElementById('output').innerHTML = html;
+}
+
+addGroup();
+addBacklog();
+</script>
+  </body>
+</html>
