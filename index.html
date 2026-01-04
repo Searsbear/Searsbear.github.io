@@ -7,7 +7,9 @@
     <title>Pay & Budget Matrix</title>
     <script type="module" src="index-CagdDJkF.js"></script>
     <link rel="stylesheet" href="index-DvBTMve7.css">
-    
+    <script 
+  src="https://www.paypal.com/sdk/js?client-id=BAAnaHUwCT8QU_1UD3v5D5KN6MJ7e2ZJkTRd5kS8aBphv7vWegeq2txRBuZsdRv9wX8XOxH-GL3D6BaxaM&components=hosted-buttons&disable-funding=venmo&currency=CAD">
+    </script>
     <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -84,6 +86,11 @@
     <div id="resource-menu" class="full-overlay">
       <span class="close-btn" onclick="toggleOverlay('resource-menu', false)">← BACK TO MATRIX</span>
       <div style="max-width:600px; margin:auto;">
+
+        <h3 class="resource-header" style="color: #f59e0b; border-color: #f59e0b;">☕ SUPPORT THE PROJECT</h3>
+        <div class="resource-item" style="text-align: center; padding: 20px;">
+            <p style="margin-bottom: 15px;">If this helps you, consider a tip!</p>
+            <div id="paypal-container-YRL4XTQAURYDS"></div>
         
         <h3 class="resource-header cat-legal">⚖️ Legal & Tenant Systems</h3>
         <a href="https://www.tal.gouv.qc.ca/en" target="_blank" class="resource-item">
@@ -240,16 +247,6 @@
             <strong>Apartment Maintenance:</strong><br>
             Review the "Invisible Tasks" guide in your documentation.
         </div>
-        <div class="resource-item">
-              </div>
-<div id="paypal-container-YRL4XTQAURYDS"></div>
-<script>
-  paypal.HostedButtons({
-    hostedButtonId: "YRL4XTQAURYDS",
-  }).render("#paypal-container-YRL4XTQAURYDS")
-</script>
-      </div>
-
       </div>
     </div>
 
@@ -287,6 +284,20 @@
     document.body.style.overflow = show ? 'hidden' : 'auto';
   }
 }
+
+function initPayPal() {
+        if (window.paypal && window.paypal.HostedButtons) {
+          paypal.HostedButtons({
+            hostedButtonId: "YRL4XTQAURYDS",
+          }).render("#paypal-container-YRL4XTQAURYDS");
+        } else {
+          // Check again if SDK not loaded yet
+          setTimeout(initPayPal, 500);
+        }
+      }
+
+      // Initialize PayPal
+      initPayPal();
 
 // (Keep addGroup, addSubTask, and move functions from previous version)
 function addGroup() {
@@ -423,8 +434,5 @@ function calculate() {
 addGroup();
 addBacklog();
 </script>
-    <script 
-  src="https://www.paypal.com/sdk/js?client-id=BAAnaHUwCT8QU_1UD3v5D5KN6MJ7e2ZJkTRd5kS8aBphv7vWegeq2txRBuZsdRv9wX8XOxH-GL3D6BaxaM&components=hosted-buttons&disable-funding=venmo&currency=CAD">
-    </script>
   </body>
 </html>
