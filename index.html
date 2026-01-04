@@ -284,20 +284,6 @@
     document.body.style.overflow = show ? 'hidden' : 'auto';
   }
 }
-
-  window.addEventListener('load', () => {
-    // Delay PayPal by 1 second to let the Scheduler initialize first
-    setTimeout(() => {
-      if (window.paypal && window.paypal.HostedButtons) {
-        paypal.HostedButtons({
-          hostedButtonId: "YRL4XTQAURYDS",
-        }).render("#paypal-container-YRL4XTQAURYDS");
-      }
-    }, 1000); 
-  });
-
-  // Initial setup
-  addGroup()
   
 // (Keep addGroup, addSubTask, and move functions from previous version)
 function addGroup() {
@@ -434,5 +420,23 @@ function calculate() {
 addGroup();
 addBacklog();
 </script>
+
+<script>
+  // This function ensures the PayPal SDK is loaded before trying to render
+  function initPayPal() {
+    if (window.paypal && window.paypal.HostedButtons) {
+      paypal.HostedButtons({
+        hostedButtonId: "YRL4XTQAURYDS",
+      }).render("#paypal-container-YRL4XTQAURYDS");
+    } else {
+      // If it's not ready yet, check again in 500ms
+      setTimeout(initPayPal, 500);
+    }
+  }
+  
+  // Start the check
+  initPayPal();
+</script>
+
     </body>
 </html>
