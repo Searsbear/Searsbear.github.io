@@ -119,15 +119,18 @@
         </button>
     </div>
 
-    <div id="editorModal" class="full-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span>[ RESUME_EDITOR_V1.0 ]</span>
-                <button onclick="toggleOverlay('editorModal', false)" style="color:#020617; font-size:28px; background:none; border:none; cursor:pointer;">&times;</button>
+    <div id="editorModal" class="full-overlay" style="background: #020617; padding: 0;">
+    <div class="modal-content" style="display: flex; flex-direction: column; height: 100vh;">
+        <div class="modal-header" style="background: #0f172a; color: #10b981; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1e293b; flex-shrink: 0;">
+            <span style="font-family: monospace; font-weight: bold; padding-left: 15px;">[ RESUME_EDITOR_V1.0 ]</span>
+            <div style="display: flex; align-items: center;">
+                <button onclick="mobilePrintFix()" style="background: #10b981; color: #020617; border: none; padding: 5px 12px; font-weight: bold; font-family: monospace; border-radius: 4px; margin-right: 10px; cursor: pointer;">PRINT</button>
+                <button onclick="toggleOverlay('editorModal', false)" style="color:#ef4444; font-size: 35px; background:none; border:none; cursor:pointer; padding: 0 20px; line-height: 60px;">&times;</button>
             </div>
-            <iframe src="mxemo/index.html" title="Resume Editor"></iframe>
         </div>
+        <iframe src="mxemo/index.html" title="Resume Editor" style="flex: 1; border: none; width: 100%;"></iframe>
     </div>
+</div>
    
     <div id="resource-menu" class="full-overlay">
       <span class="close-btn" onclick="toggleOverlay('resource-menu', false)">← BACK TO MATRIX</span>
