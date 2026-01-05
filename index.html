@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#020617" />
     <title>Pay & Budget Matrix</title>
     <script type="module" src="index-CagdDJkF.js"></script>
@@ -70,59 +70,34 @@
       }
 
       /* Styling the launch button */
-.launch-btn {
-    padding: 12px 24px;
-    background-color: #4f46e5;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-}
+/* --- APP-STYLE SNAP TO FIT --- */
+@media (max-width: 768px) {
+    #editorModal {
+        padding: 0 !important; /* Remove any padding around the modal */
+    }
 
-/* The dark background behind the popup */
-.modal-overlay {
-    display: none; /* Hidden until button is clicked */
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(4px);
-    z-index: 9999;
-}
+    #editorModal .modal-content {
+        display: flex;
+        flex-direction: column;
+        width: 100vw !important; /* Snap to full width */
+        height: 100vh !important; /* Snap to full height */
+        margin: 0 !important;
+        border: none !important;
+        border-radius: 0 !important;
+    }
 
-/* The white window containing the iframe */
-.modal-content {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    margin: 1px auto;
-    background: white;
-    border-radius: 1px;
-    overflow: hidden;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
-}
+    #editorModal iframe {
+        flex: 1; /* Automatically takes up all remaining space below the header */
+        width: 100% !important;
+        height: 100% !important;
+        border: none !important;
+    }
 
-.modal-header {
-    padding: 1px;
-    background: #f8f9fa;
-    border-bottom: 1px solid #ddd;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-iframe {
-    width: 100%;
-    height: 90%; /* Adjusts for header height */
-    border: none;
-}
-
-.close-btn {
-    font-size: 28px;
-    border: none;
-    background: none;
-    cursor: pointer;
+    .modal-header {
+        height: 60px; /* Explicit height for a chunky mobile touch-target */
+        padding: 0 15px !important;
+        flex-shrink: 0; /* Prevents header from squishing */
+    }
 }
     </style>
   </head>
@@ -411,6 +386,16 @@ iframe {
 
       
 <script>
+
+  function mobilePrintFix() {
+    const iframe = document.querySelector('#editorModal iframe');
+    if (iframe) {
+        // We tell the iframe to focus and trigger its internal print logic
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+    }
+}
+  
   /* --- OVERLAY LOGIC --- */
       function toggleOverlay(id, show) {
         const el = document.getElementById(id);
