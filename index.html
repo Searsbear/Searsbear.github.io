@@ -138,6 +138,21 @@ iframe {
         <button onclick="toggleOverlay('scheduler-panel', true)" style="background: #10b981; color: #020617; border: none; padding: 15px; width: 100%; max-width: 400px; font-weight: bold; cursor: pointer; border-radius: 4px; font-family: monospace;">📅 OPEN SCHEDULER</button>
     </div>
 
+    <button onclick="openEditor()" class="launch-btn">
+  <i class="fas fa-edit"></i> Launch Resume Editor
+</button>
+
+<div id="editorModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span>Resume Editor</span>
+            <button onclick="closeEditor()" class="close-btn">&times;</button>
+        </div>
+
+        <iframe src="mxemo/index.html" title="Resume Editor"></iframe>
+    </div>
+</div>
+
    
    
     <div id="resource-menu" class="full-overlay">
@@ -393,42 +408,8 @@ iframe {
             <div id="output" class="output"></div>
         </div>
       </div>
-<button onclick="openEditor()" class="launch-btn">
-  <i class="fas fa-edit"></i> Launch Resume Editor
-</button>
 
-<div id="editorModal" class="modal-overlay">
-    <div class="modal-content">
-        <div class="modal-header">
-            <span>Resume Editor</span>
-            <button onclick="closeEditor()" class="close-btn">&times;</button>
-        </div>
 
-        <iframe src="mxemo/index.html" title="Resume Editor"></iframe>
-    </div>
-</div>
-
-      <script>
-    const modal = document.getElementById('editorModal');
-
-    function openEditor() {
-        modal.style.display = 'block';
-        // Prevents the background from scrolling while editor is open
-        document.body.style.overflow = 'hidden'; 
-    }
-
-    function closeEditor() {
-        modal.style.display = 'none';
-        document.body.style.overflow = 'auto';
-    }
-
-    // Close the modal if the user clicks the dark background outside the window
-    window.onclick = function(event) {
-        if (event.target == modal) {
-            closeEditor();
-        }
-    }
-</script>
       
 <script>
   function toggleOverlay(id, show) {
@@ -575,6 +556,29 @@ function calculate() {
 addGroup();
 addBacklog();
 </script>
+
+      <script>
+    const modal = document.getElementById('editorModal');
+
+    function openEditor() {
+        modal.style.display = 'block';
+        // Prevents the background from scrolling while editor is open
+        document.body.style.overflow = 'hidden'; 
+    }
+
+    function closeEditor() {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+
+    // Close the modal if the user clicks the dark background outside the window
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            closeEditor();
+        }
+    }
+</script>
+      
 
 <script>
   // This function ensures the PayPal SDK is loaded before trying to render
