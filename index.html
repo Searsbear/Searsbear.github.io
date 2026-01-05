@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=3.0, viewport-fit=cover"/>
     <meta name="theme-color" content="#020617" />
     <title>Pay & Budget Matrix</title>
     <script type="module" src="index-CagdDJkF.js"></script>
@@ -74,6 +74,8 @@
 @media (max-width: 768px) {
     #editorModal {
         padding: 0 !important; /* Remove any padding around the modal */
+      overflow: auto !important; /* Allows the container to handle the zoomed content */
+    -webkit-overflow-scrolling: touch;
     }
 
     #editorModal .modal-content {
@@ -91,10 +93,12 @@
         width: 100% !important;
         height: 100% !important;
         border: none !important;
+      overflow: auto !important; /* Allows the container to handle the zoomed content */
+    -webkit-overflow-scrolling: touch;
     }
 
     .modal-header {
-        height: 60px; /* Explicit height for a chunky mobile touch-target */
+        height: 30px; /* Explicit height for a chunky mobile touch-target */
         padding: 0 15px !important;
         flex-shrink: 0; /* Prevents header from squishing */
     }
@@ -123,9 +127,8 @@
     <div class="modal-content" style="display: flex; flex-direction: column; height: 100vh;">
         <div class="modal-header" style="background: #0f172a; color: #10b981; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1e293b; flex-shrink: 0;">
             <span style="font-family: monospace; font-weight: bold; padding-left: 15px;">[ RESUME_EDITOR_V1.0 ]</span>
-            <div style="display: flex; align-items: center;">
-                <button onclick="mobilePrintFix()" style="background: #10b981; color: #020617; border: none; padding: 5px 12px; font-weight: bold; font-family: monospace; border-radius: 4px; margin-right: 10px; cursor: pointer;">PRINT</button>
-                <button onclick="toggleOverlay('editorModal', false)" style="color:#ef4444; font-size: 35px; background:none; border:none; cursor:pointer; padding: 0 20px; line-height: 60px;">&times;</button>
+            <div style="display: flex; align-items: center;"
+                <button onclick="toggleOverlay('editorModal', false)" style="color:#ef4444; font-size: 35px; background:none; border:none; cursor:pointer; padding: 0 20px; line-height: 30px;">&times;</button>
             </div>
         </div>
         <iframe src="mxemo/index.html" title="Resume Editor" style="flex: 1; border: none; width: 100%;"></iframe>
@@ -396,6 +399,21 @@
         // We tell the iframe to focus and trigger its internal print logic
         iframe.contentWindow.focus();
         iframe.contentWindow.print();
+    }
+}
+
+  function toggleFitToScreen() {
+    const iframe = document.querySelector('#editorModal iframe');
+    // If already scaled, reset it. Otherwise, scale to 0.5 (50% size)
+    if (iframe.style.transform === "scale(0.5)") {
+        iframe.style.transform = "scale(1)";
+        iframe.style.width = "100%";
+        iframe.style.height = "calc(100vh - 40px)";
+    } else {
+        iframe.style.transform = "scale(0.5)";
+        iframe.style.width = "200%"; // Double width to compensate for 0.5 scale
+        iframe.style.height = "200%";
+        iframe.style.transformOrigin = "top left";
     }
 }
   
