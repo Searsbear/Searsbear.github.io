@@ -1,52 +1,41 @@
-
 <!DOCTYPE html>
-<html lang="en" data-beasties-container>
-<head><base href="/mxemo/">
+<html lang="en">
+<head>
+  <base href="/mxemo/">
+  
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <title>ProResume Editor</title>
   
-  <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   
-  <!-- Stylesheets -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="./src/styles.css">
   
-  <!-- PWA Manifest -->
-  <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22ProResume%20Editor%22,%22short_name%22:%22Resume%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22#0f172a%22,%22theme_color%22:%22#4f46e5%22}">
+  <link rel="stylesheet" href="styles-R2JUTMK6.css">
 
-<script type="importmap">
-{
-  "imports": {
-    "rxjs": "https://esm.sh/rxjs@^7.8.2?conditions=es2015",
-    "rxjs/operators": "https://esm.sh/rxjs@^7.8.2/operators?conditions=es2015",
-    "rxjs/ajax": "https://esm.sh/rxjs@^7.8.2/ajax?conditions=es2015",
-    "rxjs/webSocket": "https://esm.sh/rxjs@^7.8.2/webSocket?conditions=es2015",
-    "rxjs/testing": "https://esm.sh/rxjs@^7.8.2/testing?conditions=es2015",
-    "rxjs/fetch": "https://esm.sh/rxjs@^7.8.2/fetch?conditions=es2015",
-    "@angular/platform-browser": "https://esm.sh/@angular/platform-browser@^21.0.6?external=rxjs",
-    "@angular/compiler": "https://esm.sh/@angular/compiler@^21.0.6?external=rxjs",
-    "@angular/core": "https://esm.sh/@angular/core@^21.0.6?external=rxjs",
-    "@angular/forms": "https://esm.sh/@angular/forms@^21.0.6?external=rxjs",
-    "@google/genai": "https://esm.sh/@google/genai@^1.34.0?external=rxjs"
-  }
-}
-</script>
-<link rel="stylesheet" href="/index.css">
-<style>:root{--bg-main:#020617;--bg-header:#0f172a;--accent-color:#4f46e5;--accent-hover:#6366f1;--resume-bg:#ffffff;--resume-text-primary:#111827;--resume-text-secondary:#374151;--resume-text-muted:#6b7280;--resume-sidebar-bg:#f9fafb;--resume-border:#e5e7eb;--resume-accent:#111827}html,body{height:100%;margin:0;background-color:var(--bg-main);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}@page{size:A4;margin:0}@media print{body{background:#fff!important;overflow:visible!important}}</style><link rel="stylesheet" href="styles-R2JUTMK6.css" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="styles-R2JUTMK6.css"></noscript></head>
-<body class="bg-slate-950 font-sans antialiased h-screen overflow-hidden text-slate-200">
-  <app-root></app-root>
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').then(reg => {
-          console.log('SW registered');
-        }).catch(err => {
-          console.log('SW registration failed', err);
-        });
-      });
+  <style>
+    :root {
+      --bg-main: #020617;
+      --bg-header: #0f172a;
+      --accent-color: #4f46e5;
+      --resume-bg: #ffffff;
     }
-  </script>
-<script src="main-RC2A7RCD.js" type="module"></script></body>
+    html, body { 
+      height: 100%; 
+      margin: 0; 
+      background-color: var(--bg-main); 
+      color: white;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 font-sans antialiased h-screen overflow-hidden text-slate-200">
+  
+  <app-root>
+    <div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+      <p>Loading Resume Editor...</p>
+    </div>
+  </app-root>
+
+  <script src="main-RC2A7RCD.js" type="module"></script>
+</body>
 </html>
