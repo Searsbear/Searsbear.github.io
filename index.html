@@ -402,20 +402,7 @@
     }
 }
 
-  function toggleFitToScreen() {
-    const iframe = document.querySelector('#editorModal iframe');
-    // If already scaled, reset it. Otherwise, scale to 0.5 (50% size)
-    if (iframe.style.transform === "scale(0.5)") {
-        iframe.style.transform = "scale(1)";
-        iframe.style.width = "100%";
-        iframe.style.height = "calc(100vh - 40px)";
-    } else {
-        iframe.style.transform = "scale(0.5)";
-        iframe.style.width = "200%"; // Double width to compensate for 0.5 scale
-        iframe.style.height = "200%";
-        iframe.style.transformOrigin = "top left";
-    }
-}
+  
   
   /* --- OVERLAY LOGIC --- */
       function toggleOverlay(id, show) {
