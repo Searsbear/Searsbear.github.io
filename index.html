@@ -94,17 +94,17 @@
 /* The white window containing the iframe */
 .modal-content {
     position: relative;
-    width: 90%;
-    height: 85%;
-    margin: 40px auto;
+    width: 100%;
+    height: 100%;
+    margin: 1px auto;
     background: white;
-    border-radius: 12px;
+    border-radius: 1px;
     overflow: hidden;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
 }
 
 .modal-header {
-    padding: 15px;
+    padding: 1px;
     background: #f8f9fa;
     border-bottom: 1px solid #ddd;
     display: flex;
@@ -114,7 +114,7 @@
 
 iframe {
     width: 100%;
-    height: calc(100% - 55px); /* Adjusts for header height */
+    height: 90%; /* Adjusts for header height */
     border: none;
 }
 
@@ -148,7 +148,7 @@ iframe {
         <div class="modal-content">
             <div class="modal-header">
                 <span>[ RESUME_EDITOR_V1.0 ]</span>
-                <button onclick="toggleOverlay('editorModal', false)" style="color:#ef4444; font-size:28px; background:none; border:none; cursor:pointer;">&times;</button>
+                <button onclick="toggleOverlay('editorModal', false)" style="color:#020617; font-size:28px; background:none; border:none; cursor:pointer;">&times;</button>
             </div>
             <iframe src="mxemo/index.html" title="Resume Editor"></iframe>
         </div>
