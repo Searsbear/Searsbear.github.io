@@ -134,26 +134,25 @@ iframe {
 
     <div id="root"></div>
 
-    <div style="padding: 20px 15px 40px 15px; text-align: center;">
-        <button onclick="toggleOverlay('scheduler-panel', true)" style="background: #10b981; color: #020617; border: none; padding: 15px; width: 100%; max-width: 400px; font-weight: bold; cursor: pointer; border-radius: 4px; font-family: monospace;">📅 OPEN SCHEDULER</button>
+   <div style="padding: 20px 15px 60px 15px; text-align: center;">
+        <button onclick="toggleOverlay('scheduler-panel', true)" class="matrix-btn" style="background: #10b981; color: #020617;">
+            📅 OPEN CHAINED SCHEDULER
+        </button>
+        
+        <button onclick="toggleOverlay('editorModal', true)" class="matrix-btn" style="background: #4f46e5; color: white;">
+            📝 LAUNCH RESUME EDITOR
+        </button>
     </div>
 
-    <button onclick="openEditor()" class="launch-btn">
-  <i class="fas fa-edit"></i> Launch Resume Editor
-</button>
-
-<div id="editorModal" class="modal-overlay">
-    <div class="modal-content">
-        <div class="modal-header">
-            <span>Resume Editor</span>
-            <button onclick="closeEditor()" class="close-btn">&times;</button>
+    <div id="editorModal" class="full-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>[ RESUME_EDITOR_V1.0 ]</span>
+                <button onclick="toggleOverlay('editorModal', false)" style="color:#ef4444; font-size:28px; background:none; border:none; cursor:pointer;">&times;</button>
+            </div>
+            <iframe src="mxemo/index.html" title="Resume Editor"></iframe>
         </div>
-
-        <iframe src="mxemo/index.html" title="Resume Editor"></iframe>
     </div>
-</div>
-
-   
    
     <div id="resource-menu" class="full-overlay">
       <span class="close-btn" onclick="toggleOverlay('resource-menu', false)">← BACK TO MATRIX</span>
@@ -412,6 +411,21 @@ iframe {
 
       
 <script>
+  /* --- OVERLAY LOGIC --- */
+      function toggleOverlay(id, show) {
+        const el = document.getElementById(id);
+        if (el) {
+          el.style.display = show ? 'block' : 'none';
+          document.body.style.overflow = show ? 'hidden' : 'auto';
+        }
+      }
+
+      window.onclick = function(event) {
+        if (event.target.classList.contains('full-overlay')) {
+          event.target.style.display = 'none';
+          document.body.style.overflow = 'auto';
+        }
+      }
   function toggleOverlay(id, show) {
   const el = document.getElementById(id);
   if (el) {
@@ -557,27 +571,7 @@ addGroup();
 addBacklog();
 </script>
 
-      <script>
-    const modal = document.getElementById('editorModal');
-
-    function openEditor() {
-        modal.style.display = 'block';
-        // Prevents the background from scrolling while editor is open
-        document.body.style.overflow = 'hidden'; 
-    }
-
-    function closeEditor() {
-        modal.style.display = 'none';
-        document.body.style.overflow = 'auto';
-    }
-
-    // Close the modal if the user clicks the dark background outside the window
-    window.onclick = function(event) {
-        if (event.target == modal) {
-            closeEditor();
-        }
-    }
-</script>
+      
       
 
 <script>
