@@ -37,5 +37,13 @@
   </app-root>
 
   <script src="main-RC2A7RCD.js" type="module"></script>
+  <script>
+    window.onbeforeprint = () => {
+  document.body.classList.add('printing-mode');
+};
+window.onafterprint = () => {
+  document.body.classList.remove('printing-mode');
+};
+  </script>
 </body>
 </html>
