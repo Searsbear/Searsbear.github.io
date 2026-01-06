@@ -7,9 +7,6 @@
     <title>Pay & Budget Matrix</title>
     <script type="module" src="index-CagdDJkF.js"></script>
     <link rel="stylesheet" href="index-DvBTMve7.css">
-    <script 
-  src="https://www.paypal.com/sdk/js?client-id=BAAnaHUwCT8QU_1UD3v5D5KN6MJ7e2ZJkTRd5kS8aBphv7vWegeq2txRBuZsdRv9wX8XOxH-GL3D6BaxaM&components=hosted-buttons&disable-funding=venmo&currency=CAD">
-    </script>
     <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -562,26 +559,6 @@ function calculate() {
 
 addGroup();
 addBacklog();
-</script>
-
-      
-      
-
-<script>
-  // This function ensures the PayPal SDK is loaded before trying to render
-  function initPayPal() {
-    if (window.paypal && window.paypal.HostedButtons) {
-      paypal.HostedButtons({
-        hostedButtonId: "YRL4XTQAURYDS",
-      }).render("#paypal-container-YRL4XTQAURYDS");
-    } else {
-      // If it's not ready yet, check again in 500ms
-      setTimeout(initPayPal, 500);
-    }
-  }
-  
-  // Start the check
-  initPayPal();
 </script>
 
     </body>
