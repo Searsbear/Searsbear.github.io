@@ -1,3 +1,3 @@
-Montreal's 2026 survival dashboard. Features an interactive hourly wage variations grid and rent affordability matrix. Simulate multiple 2026 tax scenarios offline. Integrated crisis and tenant resource links.
+A crisis situation dashboard. It has an hourly wage variations grid and variable rent price options so you can see all of your options for rent prices and pick the one ykure comfortable enough with. It can simulate multiple scenarios all offline. Included too is a simple text based resume editor and a scheduler/planner so you dont need to do as much mental math for planning your day out. There is integrated crisis and tenant resource links too so you arent surfing the web for a while and not being able to find anything.
 
-It give you some better foresight for budgetting and planning in uncertain situationa.
+It gives you better foresight for budgetting and planning in uncertain situations.
