@@ -39,26 +39,34 @@
     <script src="https://unpkg.com/pmtiles@2.11.0/dist/index.js"></script>
     
     <script src="https://unpkg.com/protomaps-leaflet@5.0.0/dist/protomaps-leaflet.js"></script>
-
 <script>
-    window.onload = function() {
-        // Initialize map
-        const map = L.map('map').setView([45.5088, -73.5878], 12);
+window.onload = function() {
+    // 1. Initialize the map
+    const map = L.map('map').setView([45.5088, -73.5878], 12);
 
-        // Standard Protomaps implementation
-        const layer = protomapsL.leafletLayer({
-            url: "data/montreal.pmtiles",
-            theme: "dark" // Use the string preset
-        });
-        layer.addTo(map);
+    // 2. Add the PMTiles protocol to Leaflet
+    const p = new pmtiles.Protocol();
+    L.TileLayer.addInitHook(function() {
+        try {
+            this._url.startsWith('pmtiles://') && p.add(this._url);
+        } catch (e) {}
+    });
 
-        // Marker
-        L.marker([45.5005, -73.5716])
-         .addTo(map)
-         .bindPopup("<b>YES Montreal</b><br>Friday Meeting Point.");
+    // 3. Simplified Layer Setup
+    const layer = protomapsL.leafletLayer({
+        url: "data/montreal.pmtiles",
+        theme: "dark", // Use the built-in string shortcut
+        backgroundColor: "#020617"
+    });
+    
+    layer.addTo(map);
 
-        L.control.scale().addTo(map);
-    };
+    // 4. Marker
+    const meetingPoint = L.marker([45.5005, -73.5716]).addTo(map);
+    meetingPoint.bindPopup("<b>YES Montreal</b><br>Friday Meeting Point.");
+
+    L.control.scale({position: 'bottomleft'}).addTo(map);
+};
 </script>
 </body>
 </html>
