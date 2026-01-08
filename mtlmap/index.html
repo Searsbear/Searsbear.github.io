@@ -46,6 +46,11 @@
             
             // Initialize the map centered on Montreal
             const map = L.map('map').setView([45.5088, -73.5878], 12);
+            const theme = protomapsL.dark; 
+
+            // 2. Turn those settings into actual drawing instructions
+            const paintRules = protomapsL.paintRules(theme);
+            const labelRules = protomapsL.labelRules(theme);
 
             // Configure the Protomaps Layer
             // If you get an error, check that your file is named exactly 'montreal.pmtiles' 
@@ -53,7 +58,9 @@
             if (typeof protomapsL !== 'undefined') {
                 const layer = protomapsL.leafletLayer({
                     url: "data/montreal.pmtiles",
-                    theme: "dark", // High-contrast for better visibility
+                    paintRules: paintRules,
+                    labelRules: labelRules,
+                    backgroundColor: "#020617"
                 });
                 layer.addTo(map);
             } else {
