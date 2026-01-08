@@ -44,14 +44,6 @@ window.onload = function() {
     // 1. Initialize the map
     const map = L.map('map').setView([45.5088, -73.5878], 12);
 
-    // 2. Add the PMTiles protocol to Leaflet
-    const p = new pmtiles.Protocol();
-    L.TileLayer.addInitHook(function() {
-        try {
-            this._url.startsWith('pmtiles://') && p.add(this._url);
-        } catch (e) {}
-    });
-
     // 3. Simplified Layer Setup
     const layer = protomapsL.leafletLayer({
         url: "data/montreal.pmtiles",
