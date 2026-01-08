@@ -4,75 +4,36 @@
     <title>MTL Survival Map</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
     <style>
-        body, html { 
-            margin: 0; 
-            padding: 0; 
-            height: 100%; 
-            background: #020617; /* Dark survival theme */
-            font-family: sans-serif;
-        }
-        #map { 
-            width: 100%; 
-            height: 100vh; 
-        }
-        /* Custom styling for the popup to match your app */
-        .leaflet-popup-content-wrapper {
-            background: #1e293b;
-            color: #f1f5f9;
-            border-radius: 4px;
-        }
-        .leaflet-popup-tip {
-            background: #1e293b;
-        }
-
-        .leaflet-tile-container {
-        background-color: transparent !important;
-        }
-        .leaflet-container {
-        background: #020617 !important;
-        }
+        body, html { margin: 0; padding: 0; height: 100%; background: #020617; }
+        #map { width: 100%; height: 100vh; background: #020617; }
     </style>
 </head>
 <body>
-
     <div id="map"></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    
     <script src="https://unpkg.com/pmtiles@2.11.0/dist/index.js"></script>
-    
-    <script src="https://unpkg.com/protomaps-leaflet@5.0.0/dist/protomaps-leaflet.js"></script>
-<script>
-window.onload = function() {
-    // 1. Initialize the map
-    const map = L.map('map').setView([45.5088, -73.5878], 12);
+    <script src="https://unpkg.com/protomaps-leaflet@4.0.1/dist/protomaps-leaflet.min.js"></script>
 
-    // 2. Define the theme flavors explicitly
-    // In Protomaps v5, 'protomapsL.dark' is the actual data structure for the theme
-    const theme = protomapsL.dark; 
-    const paintRules = protomapsL.paintRules(theme);
-    const labelRules = protomapsL.labelRules(theme);
+    <script>
+        window.onload = function() {
+            const map = L.map('map').setView([45.5088, -73.5878], 12);
 
-    // 3. Updated Layer Setup
-    const layer = protomapsL.leafletLayer({
-        url: "data/montreal.pmtiles",
-        paintRules: paintRules, // These tell the browser how to color the lines
-        labelRules: labelRules, // These tell the browser how to draw street names
-        backgroundColor: "#020617"
-    });
-    
-    layer.addTo(map);
+            // In v4, the theme can be passed directly as a string or rule set
+            const layer = protomapsL.leafletLayer({
+                url: "data/montreal.pmtiles",
+                theme: "dark"
+            });
+            
+            layer.addTo(map);
 
-    // 4. Marker remains the same
-    const meetingPoint = L.marker([45.5005, -73.5716]).addTo(map);
-    meetingPoint.bindPopup("<b>YES Montreal</b><br>Friday Meeting Point.");
-
-    L.control.scale({position: 'bottomleft'}).addTo(map);
-};
-</script>
+            // Marker for your meeting
+            L.marker([45.5005, -73.5716]).addTo(map)
+                .bindPopup("<b>YES Montreal</b>")
+                .openPopup();
+        };
+    </script>
 </body>
 </html>
