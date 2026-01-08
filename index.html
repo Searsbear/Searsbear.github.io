@@ -45,6 +45,58 @@
           grid-template-columns: 1fr; 
           gap: 15px; 
       }
+
+      /* The trigger button */
+    .btn-map {
+        background-color: #0ea5e9;
+        color: white;
+        padding: 14px 28px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 1.1rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: all 0.2s;
+    }
+    .btn-map:hover { background-color: #0284c7; transform: translateY(-2px); }
+
+    /* The Map Wrapper */
+    #map-overlay {
+        display: none; /* Hidden by default */
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(2, 6, 23, 0.95); /* Dark blur background */
+        z-index: 9999;
+        padding: 40px;
+        box-sizing: border-box;
+    }
+
+    /* The Close Button */
+    .btn-close-map {
+        position: absolute;
+        top: 15px;
+        right: 40px;
+        background: #ef4444;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        z-index: 10000;
+    }
+    .btn-close-map:hover { background: #dc2626; }
+
+    #map-frame {
+        width: 100%;
+        height: 100%;
+        border: 2px solid #334155;
+        border-radius: 12px;
+        background: #020617;
+    }
+      
       @media (min-width: 768px) {
           .scheduler-grid { grid-template-columns: 1fr 1fr; }
       }
@@ -122,8 +174,15 @@
         <button onclick="toggleOverlay('editorModal', true)" class="matrix-btn" style="background: #4f46e5; color: white;">
             📝 LAUNCH RESUME EDITOR
         </button>
+
+       <button class="btn-map" onclick="toggleMap(true)">Open Resource Map</button>
     </div>
 
+  <div id="map-overlay">
+    <button class="btn-close-map" onclick="toggleMap(false)">✕ Close Map</button>
+    <iframe id="map-frame" src="" frameborder="0"></iframe>
+</div>
+    
     <div id="editorModal" class="full-overlay" style="background: #020617; padding: 0;">
     <div class="modal-content" style="display: flex; flex-direction: column; height: 100vh;">
         <div class="modal-header" style="background: #0f172a; color: #10b981; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1e293b; flex-shrink: 0;">
@@ -581,6 +640,23 @@ addBacklog();
       <!-- 100% privacy-first analytics -->
 <script data-collect-dnt="true" async src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
 
+<script>
+    function toggleMap(show) {
+        const overlay = document.getElementById('map-overlay');
+        const frame = document.getElementById('map-frame');
+        
+        if (show) {
+            // Only load the map file when they click the button (saves data!)
+            frame.src = "./mtlmap/index.html"; 
+            overlay.style.display = "block";
+            document.body.style.overflow = "hidden"; // Stop background scrolling
+        } else {
+            frame.src = ""; // Unload map to save memory
+            overlay.style.display = "none";
+            document.body.style.overflow = "auto"; // Re-enable scrolling
+        }
+    }
+</script>
 
     </body>
 </html>
