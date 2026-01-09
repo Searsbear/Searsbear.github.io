@@ -18,14 +18,54 @@
         const protocol = new pmtiles.Protocol();
         maplibregl.addProtocol("pmtiles", protocol.add);
 
-        const map = new maplibregl.Map({
-            container: 'map',
-            // Updated V3 Style Link
-            style: 'https://protomaps.github.io/basemaps-assets/sprites/v3/dark.json',
-            center: [-73.5878, 45.5088],
-            zoom: 12,
-            pitch: 45
-        });
+const map = new maplibregl.Map({
+    container: 'map',
+    style: {
+        "version": 8,
+        "sources": {
+            "protomaps": {
+                "type": "vector",
+                "url": "pmtiles://data/montreal.pmtiles",
+                "attribution": "© OpenStreetMap"
+            }
+        },
+        "glyphs": "https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf",
+        "layers": [
+            {
+                "id": "background",
+                "type": "background",
+                "paint": { "background-color": "#020617" }
+            },
+            {
+                "id": "water",
+                "source": "protomaps",
+                "source-layer": "water",
+                "type": "fill",
+                "paint": { "fill-color": "#0ea5e9" }
+            },
+            {
+                "id": "roads",
+                "source": "protomaps",
+                "source-layer": "roads",
+                "type": "line",
+                "paint": { 
+                    "line-color": "#334155",
+                    "line-width": 1
+                }
+            },
+            {
+                "id": "buildings",
+                "source": "protomaps",
+                "source-layer": "buildings",
+                "type": "fill",
+                "paint": { "fill-color": "#1e293b" }
+            }
+        ]
+    },
+    center: [-73.5878, 45.5088],
+    zoom: 12,
+    pitch: 45
+});
 
         map.on('load', () => {
             // Ensure the source name matches what's in the JSON style (usually 'protomaps')
