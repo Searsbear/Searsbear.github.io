@@ -17,11 +17,13 @@
     <script src="maplibre-gl.js"></script>
 
     <script>
-        // 4. REGISTER THE PROTOCOL IMMEDIATELY
+        // 1. Setup the PMTiles Protocol
         const protocol = new pmtiles.Protocol();
         maplibregl.addProtocol("pmtiles", protocol.add);
 
-        // 5. INITIALIZE MAP
+        // 2. Define the path to your file (since it's in the same folder)
+        const PMTILES_URL = "montreal.pmtiles";
+
         const map = new maplibregl.Map({
             container: 'map',
             style: {
@@ -29,8 +31,8 @@
                 "sources": {
                     "protomaps": {
                         "type": "vector",
-                        // Note: If pmtiles is in the same folder as index.html
-                        "url": "pmtiles://montreal.pmtiles", 
+                        // Using the format the library expects: pmtiles://URL
+                        "url": "pmtiles://" + PMTILES_URL,
                         "attribution": "© OSM"
                     }
                 },
@@ -60,12 +62,13 @@
             zoom: 12
         });
 
-        map.on('load', () => {
-            console.log("Map Loaded Successfully");
+        // 3. Catch errors to see exactly what is failing
+        map.on('error', (e) => {
+            console.error("Map Error Detail:", e.error);
         });
 
-        map.on('error', (e) => {
-            console.error("MapLibre Error:", e.error);
+        map.on('load', () => {
+            console.log("Map successfully loaded from root folder.");
         });
     </script>
 </body>
