@@ -3,80 +3,51 @@
 <head>
     <title>MTL Survival Map</title>
     <meta charset="utf-8" />
-    <link href="./maplibre-gl.css" rel="stylesheet" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+    
     <style>
         body, html { margin: 0; padding: 0; height: 100%; background: #020617; }
-        #map { width: 100%; height: 100vh; }
+        #map { width: 100%; height: 100vh; background: #020617; }
     </style>
 </head>
 <body>
 
     <div id="map"></div>
 
-    <script src="./pmtiles.js"></script>
-    <script src="./maplibre-gl.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pmtiles@2.11.0/dist/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/protomaps-leaflet@4.0.1/dist/protomaps-leaflet.min.js"></script>
 
-    
+    <script>
+        function initMap() {
+            // Check if the library finally loaded
+            if (typeof protomapsL === 'undefined') {
+                console.log("Waiting for Protomaps library...");
+                setTimeout(initMap, 200); // Try again in 200ms
+                return;
+            }
 
-<script type="text/javascript">
-    // 1. Initialize Protocol from your local pmtiles.js
-    const protocol = new pmtiles.Protocol();
-    
-    // 2. Register the protocol. 
-    // IMPORTANT: Use protocol.add.bind(protocol) for the version you have!
-    maplibregl.addProtocol("pmtiles", protocol.add.bind(protocol));
+            console.log("Protomaps loaded. Starting map...");
+            
+            const map = L.map('map').setView([45.5088, -73.5878], 12);
 
-    // 3. Define your path
-    const GITHUB_RAW_URL = "./montreal.pmtiles"; 
+            const layer = protomapsL.leafletLayer({
+                url: "./montreal.pmtiles",
+                theme: "dark"
+            });
+            
+            layer.addTo(map);
 
-    const map = new maplibregl.Map({
-        container: 'map',
-        style: {
-            "version": 8,
-            "sources": {
-                "protomaps": {
-                    "type": "vector",
-                    // Use pmtiles:// so the protocol above catches it
-                    "url": "pmtiles://" + GITHUB_RAW_URL,
-                    "attribution": "© OSM"
-                }
-            },
-            "layers": [
-                {
-                    "id": "background",
-                    "type": "background",
-                    "paint": { "background-color": "#020617" }
-                },
-                {
-                    "id": "water",
-                    "source": "protomaps",
-                    "source-layer": "water",
-                    "type": "fill",
-                    "paint": { "fill-color": "#0ea5e9" }
-                },
-                {
-                    "id": "roads",
-                    "source": "protomaps",
-                    "source-layer": "roads",
-                    "type": "line",
-                    "paint": { "line-color": "#334155", "line-width": 1 }
-                }
-            ]
-        },
-        center: [-73.5878, 45.5088],
-        zoom: 12
-    });
+            // Meeting Marker
+            L.marker([45.5005, -73.5716]).addTo(map)
+                .bindPopup("<b>YES Montreal</b>")
+                .openPopup();
+        }
 
-    map.on('load', () => {
-        console.log("SUCCESS: Map is now reading the binary file correctly!");
-    });
-
-    map.on('error', (e) => {
-        // This will now catch actual map errors, not the 'P' token error
-        console.error("Map Error:", e.error);
-    });
-</script>
-
-    
+        // Run when window is ready
+        window.onload = initMap;
+    </script>
 </body>
 </html>
