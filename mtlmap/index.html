@@ -1,51 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>MTL Survival Map</title>
+    <title>MTL Survival Map | WebGL</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
     
     <style>
         body, html { margin: 0; padding: 0; height: 100%; background: #020617; }
-        #map { width: 100%; height: 100vh; background: #020617; }
+        #map { width: 100%; height: 100vh; }
     </style>
 </head>
 <body>
 
     <div id="map"></div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
     <script src="https://unpkg.com/pmtiles@2.11.0/dist/index.js"></script>
-    <script src="https://unpkg.com/protomaps-leaflet@4.0.1/dist/protomaps-leaflet.min.js"></script>
 
     <script>
-        function initMap() {
-            // Check if the painter library is loaded
-            if (typeof protomapsL === 'undefined') {
-                setTimeout(initMap, 200);
-                return;
+        // Add the PMTiles protocol to MapLibre
+        const protocol = new pmtiles.Protocol();
+        maplibregl.addProtocol("pmtiles", protocol.add);
+
+        const map = new maplibregl.Map({
+            container: 'map',
+            // This is the "Style" that makes it look like the pro viewer
+            style: 'https://protomaps.github.io/basemaps-assets/style/dark.json',
+            center: [-73.5878, 45.5088], // Montreal [Lng, Lat]
+            zoom: 12,
+            pitch: 45, // Tilt the map for that 3D look
+            hash: true // Keeps the URL updated with your position
+        });
+
+        // Tell MapLibre to use YOUR local file for the "protomaps" source
+        map.on('load', () => {
+            map.getSource('protomaps').setUrl('pmtiles://data/montreal.pmtiles');
+        });
+
+        // Add 3D Building Extrusions (The real "Pro" flex)
+        map.on('styledata', () => {
+            if (!map.getLayer('3d-buildings')) {
+                map.addLayer({
+                    'id': '3d-buildings',
+                    'source': 'protomaps',
+                    'source-layer': 'buildings',
+                    'type': 'fill-extrusion',
+                    'minzoom': 14,
+                    'paint': {
+                        'fill-extrusion-color': '#1e293b',
+                        'fill-extrusion-height': ['get', 'height'],
+                        'fill-extrusion-base': ['get', 'min_height'],
+                        'fill-extrusion-opacity': 0.8
+                    }
+                });
             }
+        });
 
-            const map = L.map('map').setView([45.5088, -73.5878], 12);
-
-            // This is the magic part that makes it look like the PMTiles viewer
-            const layer = protomapsL.leafletLayer({
-                url: "data/montreal.pmtiles",
-                theme: "dark", // High-quality dark theme
-                backgroundColor: "#020617"
-            });
-            
-            layer.addTo(map);
-
-            // YES Montreal Marker
-            L.marker([45.5005, -73.5716]).addTo(map)
-                .bindPopup("<b>YES Montreal</b>")
-                .openPopup();
-        }
-
-        window.onload = initMap;
+        // Meeting Marker
+        new maplibregl.Marker({ color: '#ef4444' })
+            .setLngLat([-73.5716, 45.5005])
+            .setPopup(new maplibregl.Popup().setHTML("<b>YES Montreal</b>"))
+            .addTo(map);
     </script>
 </body>
 </html>
