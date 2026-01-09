@@ -16,60 +16,25 @@
 
     <script>
         const protocol = new pmtiles.Protocol();
-        maplibregl.addProtocol("pmtiles", protocol.add);
+maplibregl.addProtocol("pmtiles", protocol.add);
 
 const map = new maplibregl.Map({
     container: 'map',
-    style: {
-        "version": 8,
-        "sources": {
-            "protomaps": {
-                "type": "vector",
-                "url": "pmtiles://data/montreal.pmtiles",
-                "attribution": "© OpenStreetMap"
-            }
-        },
-        "glyphs": "https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf",
-        "layers": [
-            {
-                "id": "background",
-                "type": "background",
-                "paint": { "background-color": "#020617" }
-            },
-            {
-                "id": "water",
-                "source": "protomaps",
-                "source-layer": "water",
-                "type": "fill",
-                "paint": { "fill-color": "#0ea5e9" }
-            },
-            {
-                "id": "roads",
-                "source": "protomaps",
-                "source-layer": "roads",
-                "type": "line",
-                "paint": { 
-                    "line-color": "#334155",
-                    "line-width": 1
-                }
-            },
-            {
-                "id": "buildings",
-                "source": "protomaps",
-                "source-layer": "buildings",
-                "type": "fill",
-                "paint": { "fill-color": "#1e293b" }
-            }
-        ]
-    },
+    style: 'https://tiles.stadiamaps.com/styles/alidade_smooth_dark.json', 
     center: [-73.5878, 45.5088],
     zoom: 12,
     pitch: 45
 });
 
-        map.on('load', () => {
-            // Ensure the source name matches what's in the JSON style (usually 'protomaps')
-            map.getSource('protomaps').setUrl('pmtiles://data/montreal.pmtiles');
+map.on('load', () => {
+    // We have to tell the Stadia style to look at OUR local file for data
+    // The Stadia style uses a source called 'openmaptiles' or 'protomaps'
+    // Check your console; if the map is blank, we might need to change the ID below
+    map.addSource('protomaps', {
+        type: 'vector',
+        url: 'pmtiles://data/montreal.pmtiles'
+    });
+});
             
             console.log("Map source swapped to local PMTiles.");
         });
