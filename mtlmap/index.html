@@ -33,10 +33,15 @@
             
             const map = L.map('map').setView([45.5088, -73.5878], 12);
 
-            const layer = protomapsL.leafletLayer({
-                url: "./montreal.pmtiles",
-                theme: "white"
-            });
+            // 1. Get the standard styling rules (The "Crayons")
+const paintRules = protomapsL.layers("protomaps", "light");
+
+// 2. Create the layer using those rules
+const layer = protomapsL.leafletLayer({
+    url: "./montreal.pmtiles",
+    paintRules: paintRules.paintRules,
+    labelRules: paintRules.labelRules
+});
             
             layer.addTo(map);
 
