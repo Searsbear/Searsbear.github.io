@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
     <style>
         body, html { margin: 0; padding: 0; height: 100%; background: #020617; }
@@ -16,37 +16,35 @@
 
     <div id="map"></div>
 
-    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/pmtiles@2.11.0/dist/index.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/protomaps-leaflet@4.0.1/dist/protomaps-leaflet.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/pmtiles@2.11.0/dist/index.js"></script>
+    <script src="https://unpkg.com/protomaps-leaflet@4.0.1/dist/protomaps-leaflet.min.js"></script>
 
     <script>
         function initMap() {
-            // Check if the library finally loaded
+            // Check if the painter library is loaded
             if (typeof protomapsL === 'undefined') {
-                console.log("Waiting for Protomaps library...");
-                setTimeout(initMap, 200); // Try again in 200ms
+                setTimeout(initMap, 200);
                 return;
             }
 
-            console.log("Protomaps loaded. Starting map...");
-            
             const map = L.map('map').setView([45.5088, -73.5878], 12);
 
+            // This is the magic part that makes it look like the PMTiles viewer
             const layer = protomapsL.leafletLayer({
                 url: "data/montreal.pmtiles",
-                theme: "dark"
+                theme: "dark", // High-quality dark theme
+                backgroundColor: "#020617"
             });
             
             layer.addTo(map);
 
-            // Meeting Marker
+            // YES Montreal Marker
             L.marker([45.5005, -73.5716]).addTo(map)
                 .bindPopup("<b>YES Montreal</b>")
                 .openPopup();
         }
 
-        // Run when window is ready
         window.onload = initMap;
     </script>
 </body>
