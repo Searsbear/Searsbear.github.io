@@ -8,8 +8,22 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
     
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; background: #020617; }
-        #map { width: 100%; height: 100vh; background: #020617; }
+        body, html { 
+            margin: 0; 
+            padding: 0; 
+            height: 100%; 
+            background: #f8f9fa; /* Light background for the white theme */
+        }
+        #map { 
+            width: 100%; 
+            height: 100vh; 
+        }
+        /* Style for the YES Montreal popup */
+        .leaflet-popup-content-wrapper {
+            background: #020617;
+            color: white;
+            border-radius: 8px;
+        }
     </style>
 </head>
 <body>
@@ -17,41 +31,40 @@
     <div id="map"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/pmtiles@2.11.0/dist/index.js"></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/protomaps-leaflet@4.0.1/dist/protomaps-leaflet.min.js"></script>
 
     <script>
         function initMap() {
-            // Check if the library finally loaded
+            // Check if the library is ready
             if (typeof protomapsL === 'undefined') {
                 console.log("Waiting for Protomaps library...");
-                setTimeout(initMap, 200); // Try again in 200ms
+                setTimeout(initMap, 200);
                 return;
             }
 
             console.log("Protomaps loaded. Starting map...");
             
-            const map = L.map('map').setView([45.5088, -73.5878], 12);
+            // Zoom 14 is the "Sweet Spot" where roads and building names appear
+            const map = L.map('map').setView([45.5088, -73.5878], 14);
 
-            // 1. Get the standard styling rules (The "Crayons")
-const paintRules = protomapsL.layers("protomaps", "light");
-
-// 2. Create the layer using those rules
-const layer = protomapsL.leafletLayer({
-    url: "./montreal.pmtiles",
-    paintRules: paintRules.paintRules,
-    labelRules: paintRules.labelRules
-});
+            // Using the built-in "white" theme for maximum detail (roads, parks, labels)
+            const layer = protomapsL.leafletLayer({
+                url: "./montreal.pmtiles",
+                theme: "white" 
+            });
             
             layer.addTo(map);
 
-            // Meeting Marker
-            L.marker([45.5005, -73.5716]).addTo(map)
-                .bindPopup("<b>YES Montreal</b>")
+            // YES Montreal Presentation Marker
+            const marker = L.marker([45.5005, -73.5716]).addTo(map)
+                .bindPopup("<b>YES Montreal</b><br>Survival Map Presentation")
                 .openPopup();
         }
 
-        // Run when window is ready
+        // Initialize when page is fully loaded
         window.onload = initMap;
     </script>
 </body>
