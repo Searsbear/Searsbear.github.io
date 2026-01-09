@@ -3,10 +3,7 @@
 <head>
     <title>MTL Survival Map</title>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <link href="maplibre-gl.css" rel="stylesheet" />
-    
     <style>
         body, html { margin: 0; padding: 0; height: 100%; background: #020617; }
         #map { width: 100%; height: 100vh; }
@@ -16,15 +13,15 @@
 
     <div id="map"></div>
 
-    <script src="maplibre-gl.js"></script>
     <script src="pmtiles.js"></script>
+    <script src="maplibre-gl.js"></script>
 
     <script>
-        // 1. Initialize Protocol
+        // 4. REGISTER THE PROTOCOL IMMEDIATELY
         const protocol = new pmtiles.Protocol();
         maplibregl.addProtocol("pmtiles", protocol.add);
 
-        // 2. Initialize Map
+        // 5. INITIALIZE MAP
         const map = new maplibregl.Map({
             container: 'map',
             style: {
@@ -32,7 +29,8 @@
                 "sources": {
                     "protomaps": {
                         "type": "vector",
-                        "url": "pmtiles://data/montreal.pmtiles",
+                        // Note: If pmtiles is in the same folder as index.html
+                        "url": "pmtiles://montreal.pmtiles", 
                         "attribution": "© OSM"
                     }
                 },
@@ -55,29 +53,19 @@
                         "source-layer": "roads",
                         "type": "line",
                         "paint": { "line-color": "#334155", "line-width": 1.5 }
-                    },
-                    {
-                        "id": "buildings",
-                        "source": "protomaps",
-                        "source-layer": "buildings",
-                        "type": "fill",
-                        "paint": { "fill-color": "#1e293b" }
                     }
                 ]
             },
             center: [-73.5878, 45.5088],
-            zoom: 12,
-            pitch: 45
+            zoom: 12
         });
 
         map.on('load', () => {
-            console.log("Survival Map Online.");
-            
-            // YES Montreal Marker
-            new maplibregl.Marker({ color: '#ef4444' })
-                .setLngLat([-73.5716, 45.5005])
-                .setPopup(new maplibregl.Popup().setHTML("<b>YES Montreal</b>"))
-                .addTo(map);
+            console.log("Map Loaded Successfully");
+        });
+
+        map.on('error', (e) => {
+            console.error("MapLibre Error:", e.error);
         });
     </script>
 </body>
