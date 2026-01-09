@@ -1,68 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>MTL Survival Map | WebGL</title>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
+    <title>MTL Survival Map</title>
     <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
-    
     <style>
         body, html { margin: 0; padding: 0; height: 100%; background: #020617; }
         #map { width: 100%; height: 100vh; }
     </style>
 </head>
 <body>
-
     <div id="map"></div>
 
     <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
     <script src="https://unpkg.com/pmtiles@2.11.0/dist/index.js"></script>
 
     <script>
-        // Add the PMTiles protocol to MapLibre
         const protocol = new pmtiles.Protocol();
         maplibregl.addProtocol("pmtiles", protocol.add);
 
         const map = new maplibregl.Map({
             container: 'map',
-            // This is the "Style" that makes it look like the pro viewer
-            style: 'https://protomaps.github.io/basemaps-assets/style/dark.json',
-            center: [-73.5878, 45.5088], // Montreal [Lng, Lat]
+            // Updated V3 Style Link
+            style: 'https://protomaps.github.io/basemaps-assets/styles/v3/dark.json',
+            center: [-73.5878, 45.5088],
             zoom: 12,
-            pitch: 45, // Tilt the map for that 3D look
-            hash: true // Keeps the URL updated with your position
+            pitch: 45
         });
 
-        // Tell MapLibre to use YOUR local file for the "protomaps" source
         map.on('load', () => {
+            // Ensure the source name matches what's in the JSON style (usually 'protomaps')
             map.getSource('protomaps').setUrl('pmtiles://data/montreal.pmtiles');
+            
+            console.log("Map source swapped to local PMTiles.");
         });
 
-        // Add 3D Building Extrusions (The real "Pro" flex)
-        map.on('styledata', () => {
-            if (!map.getLayer('3d-buildings')) {
-                map.addLayer({
-                    'id': '3d-buildings',
-                    'source': 'protomaps',
-                    'source-layer': 'buildings',
-                    'type': 'fill-extrusion',
-                    'minzoom': 14,
-                    'paint': {
-                        'fill-extrusion-color': '#1e293b',
-                        'fill-extrusion-height': ['get', 'height'],
-                        'fill-extrusion-base': ['get', 'min_height'],
-                        'fill-extrusion-opacity': 0.8
-                    }
-                });
-            }
+        // Error catching for the meeting
+        map.on('error', (e) => {
+            console.warn("MapLibre Error:", e.error.message);
         });
-
-        // Meeting Marker
-        new maplibregl.Marker({ color: '#ef4444' })
-            .setLngLat([-73.5716, 45.5005])
-            .setPopup(new maplibregl.Popup().setHTML("<b>YES Montreal</b>"))
-            .addTo(map);
     </script>
 </body>
 </html>
