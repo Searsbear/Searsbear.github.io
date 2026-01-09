@@ -16,69 +16,70 @@
     <script src="pmtiles.js"></script>
     <script src="maplibre-gl.js"></script>
 
+    
     <script>
-        // 1. Initialize Protocol
-        const protocol = new pmtiles.Protocol();
-        
-        // 2. The .bind(protocol) MUST be here to fix the 'reading tiles' error
-        maplibregl.addProtocol("pmtiles", protocol.add.bind(protocol));
+    // 1. Initialize Protocol
+const protocol = new pmtiles.Protocol();
+maplibregl.addProtocol("pmtiles", protocol.add.bind(protocol));
 
-        // 3. Your GitHub Raw URL (or local filename if running via Live Server)
-        const GITHUB_RAW_URL = "montreal.pmtiles"; 
+// 2. Use the exact relative path for GitHub Pages
+const GITHUB_RAW_URL = "montreal.pmtiles"; 
 
-        const map = new maplibregl.Map({
-            container: 'map',
-            // 4. ADD THE TRANSFORM REQUEST HERE
-            transformRequest: (url, resourceType) => {
-                if (resourceType === 'Source' && url.startsWith('pmtiles://')) {
-                    return {
-                        url: url.replace('pmtiles://', ''),
-                        headers: { 'Range': 'bytes=0-' }
-                    };
-                }
+const map = new maplibregl.Map({
+    container: 'map',
+    // 3. Updated transformRequest logic
+    transformRequest: (url, resourceType) => {
+        // This ensures MapLibre knows it's a PMTiles request 
+        // and doesn't try to read it as a JSON style
+        if (url.startsWith('pmtiles://')) {
+            return {
+                url: url.replace('pmtiles://', ''),
+                headers: { 'Range': 'bytes=0-' }
+            };
+        }
+        return { url };
+    },
+    style: {
+        "version": 8,
+        "sources": {
+            "protomaps": {
+                "type": "vector",
+                // IMPORTANT: Ensure the URL starts with pmtiles:// 
+                // so the protocol intercepts it
+                "url": "pmtiles://" + GITHUB_RAW_URL,
+                "attribution": "© OSM"
+            }
+        },
+        "layers": [
+            {
+                "id": "background",
+                "type": "background",
+                "paint": { "background-color": "#020617" }
             },
-            style: {
-                "version": 8,
-                "sources": {
-                    "protomaps": {
-                        "type": "vector",
-                        "url": "pmtiles://" + GITHUB_RAW_URL,
-                        "attribution": "© OSM"
-                    }
-                },
-                "layers": [
-                    {
-                        "id": "background",
-                        "type": "background",
-                        "paint": { "background-color": "#020617" }
-                    },
-                    {
-                        "id": "water",
-                        "source": "protomaps",
-                        "source-layer": "water",
-                        "type": "fill",
-                        "paint": { "fill-color": "#0ea5e9" }
-                    },
-                    {
-                        "id": "roads",
-                        "source": "protomaps",
-                        "source-layer": "roads",
-                        "type": "line",
-                        "paint": { "line-color": "#334155", "line-width": 1 }
-                    }
-                ]
+            {
+                "id": "water",
+                "source": "protomaps",
+                "source-layer": "water",
+                "type": "fill",
+                "paint": { "fill-color": "#0ea5e9" }
             },
-            center: [-73.5878, 45.5088],
-            zoom: 12
-        });
+            {
+                "id": "roads",
+                "source": "protomaps",
+                "source-layer": "roads",
+                "type": "line",
+                "paint": { "line-color": "#334155", "line-width": 1 }
+            }
+        ]
+    },
+    center: [-73.5878, 45.5088],
+    zoom: 12
+});
 
-        map.on('load', () => {
-            console.log("SUCCESS: Map fully loaded with transformRequest.");
-        });
+map.on('load', () => {
+    console.log("SUCCESS: Map fully loaded.");
+});
 
-        map.on('error', (e) => {
-            console.error("DEBUG INFO:", e.error);
-        });
     </script>
 </body>
 </html>
