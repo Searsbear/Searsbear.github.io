@@ -17,69 +17,66 @@
     <script src="./maplibre-gl.js"></script>
 
     
-    <script>
-    // 1. Initialize Protocol
-const protocol = new pmtiles.Protocol();
-maplibregl.addProtocol("pmtiles", protocol.add.bind(protocol));
 
-// 2. Use the exact relative path for GitHub Pages
-const GITHUB_RAW_URL = "./montreal.pmtiles"; 
+<script>
+    // 1. Initialize Protocol from your local pmtiles.js
+    const protocol = new pmtiles.Protocol();
+    
+    // 2. Register the protocol. 
+    // IMPORTANT: Use protocol.add.bind(protocol) for the version you have!
+    maplibregl.addProtocol("pmtiles", protocol.add.bind(protocol));
 
-const map = new maplibregl.Map({
-    container: 'map',
-    // 3. Updated transformRequest logic
-    transformRequest: (url, resourceType) => {
-        // This ensures MapLibre knows it's a PMTiles request 
-        // and doesn't try to read it as a JSON style
-        if (url.startsWith('pmtiles://')) {
-            return {
-                url: url.replace('pmtiles://', ''),
-                headers: { 'Range': 'bytes=0-' }
-            };
-        }
-        return { url };
-    },
-    style: {
-        "version": 8,
-        "sources": {
-            "protomaps": {
-                "type": "vector",
-                // IMPORTANT: Ensure the URL starts with pmtiles:// 
-                // so the protocol intercepts it
-                "url": "pmtiles://" + GITHUB_RAW_URL,
-                "attribution": "© OSM"
-            }
+    // 3. Define your path
+    const GITHUB_RAW_URL = "./montreal.pmtiles"; 
+
+    const map = new maplibregl.Map({
+        container: 'map',
+        style: {
+            "version": 8,
+            "sources": {
+                "protomaps": {
+                    "type": "vector",
+                    // Use pmtiles:// so the protocol above catches it
+                    "url": "pmtiles://" + GITHUB_RAW_URL,
+                    "attribution": "© OSM"
+                }
+            },
+            "layers": [
+                {
+                    "id": "background",
+                    "type": "background",
+                    "paint": { "background-color": "#020617" }
+                },
+                {
+                    "id": "water",
+                    "source": "protomaps",
+                    "source-layer": "water",
+                    "type": "fill",
+                    "paint": { "fill-color": "#0ea5e9" }
+                },
+                {
+                    "id": "roads",
+                    "source": "protomaps",
+                    "source-layer": "roads",
+                    "type": "line",
+                    "paint": { "line-color": "#334155", "line-width": 1 }
+                }
+            ]
         },
-        "layers": [
-            {
-                "id": "background",
-                "type": "background",
-                "paint": { "background-color": "#020617" }
-            },
-            {
-                "id": "water",
-                "source": "protomaps",
-                "source-layer": "water",
-                "type": "fill",
-                "paint": { "fill-color": "#0ea5e9" }
-            },
-            {
-                "id": "roads",
-                "source": "protomaps",
-                "source-layer": "roads",
-                "type": "line",
-                "paint": { "line-color": "#334155", "line-width": 1 }
-            }
-        ]
-    },
-    center: [-73.5878, 45.5088],
-    zoom: 12
-});
+        center: [-73.5878, 45.5088],
+        zoom: 12
+    });
 
-map.on('load', () => {
-    console.log("SUCCESS: Map fully loaded.");
-});
+    map.on('load', () => {
+        console.log("SUCCESS: Map is now reading the binary file correctly!");
+    });
 
-    </script>
+    map.on('error', (e) => {
+        // This will now catch actual map errors, not the 'P' token error
+        console.error("Map Error:", e.error);
+    });
+</script>
+
+    
 </body>
 </html>
