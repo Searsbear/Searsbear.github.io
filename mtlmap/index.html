@@ -3,246 +3,359 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Montreal Data Master - GitHub Edition</title>
+    <title>Montreal Survival Map - Universal Edition</title>
     
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
     
     <style>
-        body { margin: 0; display: flex; flex-direction: column; height: 100vh; font-family: 'Segoe UI', sans-serif; background: #121212; color: #e0e0e0; }
-        
-        /* Navigation & Search */
-        .header { 
-            padding: 15px; 
-            background: #1f2937; 
-            display: flex; 
-            gap: 10px; 
-            align-items: center; 
-            z-index: 1001; 
-            border-bottom: 2px solid #374151; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        :root {
+            --bg-dark: #121212;
+            --panel-dark: #1f2937;
+            --accent: #10b981;
+            --text-main: #e0e0e0;
         }
-        
-        #apiSearch { 
-            flex-grow: 1; 
-            padding: 12px; 
-            border-radius: 6px; 
-            border: 1px solid #4b5563; 
-            background: #374151; 
-            color: white; 
-            font-size: 15px; 
+
+        body, html { 
+            margin: 0; 
+            padding: 0; 
+            height: 100%; 
+            width: 100%; 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Top Header */
+        .header {
+            background: var(--panel-dark);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 2px solid #374151;
+            z-index: 1002;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo { color: var(--accent); font-weight: 800; font-size: 1.2rem; letter-spacing: 1px; }
+
+        #apiSearch {
+            flex-grow: 1;
+            background: #374151;
+            border: 1px solid #4b5563;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 15px;
             outline: none;
         }
-        #apiSearch:focus { border-color: #10b981; }
 
-        button { 
-            background: #10b981; 
-            border: none; 
-            padding: 12px 20px; 
-            border-radius: 6px; 
-            color: black; 
-            font-weight: bold; 
-            cursor: pointer; 
+        #apiSearch:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2); }
+
+        .btn {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover { background: #34d399; transform: translateY(-1px); }
+        .btn-clear { background: #ef4444; color: white; margin-left: 5px; }
+        .btn-clear:hover { background: #f87171; }
+
+        /* Main Layout */
+        .main-content {
+            display: flex;
+            flex: 1;
+            position: relative;
+        }
+
+        /* Sidebar Catalog */
+        #sidebar {
+            width: 350px;
+            background: #181818;
+            border-right: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            z-index: 1001;
+        }
+
+        .sidebar-header {
+            padding: 15px;
+            border-bottom: 1px solid #333;
+            background: #1c1c1c;
+        }
+
+        #catalogList {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .catalog-item {
+            background: #262626;
+            margin-bottom: 10px;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            border-left: 4px solid transparent;
             transition: 0.2s;
         }
-        button:hover { background: #34d399; }
 
-        /* Layout */
-        .main-container { display: flex; flex-grow: 1; overflow: hidden; }
-        
-        #catalog { 
-            width: 320px; 
-            background: #181818; 
-            border-right: 1px solid #333; 
-            overflow-y: auto; 
-            padding: 15px; 
+        .catalog-item:hover { background: #333; border-left-color: #4b5563; }
+        .catalog-item.active { background: #1e2925; border-left-color: var(--accent); }
+        .catalog-item strong { display: block; margin-bottom: 4px; font-size: 14px; }
+        .catalog-item small { color: #9ca3af; font-size: 11px; text-transform: uppercase; }
+
+        /* Map Container */
+        #map {
+            flex: 1;
+            z-index: 1;
         }
 
-        .catalog-item { 
-            padding: 12px; 
-            margin-bottom: 8px; 
-            background: #262626; 
-            border-radius: 6px; 
-            font-size: 13px; 
-            cursor: pointer; 
-            border-left: 4px solid transparent; 
-            transition: 0.2s;
-        }
-        .catalog-item:hover { background: #333; }
-        .catalog-item.active { border-left-color: #10b981; background: #1e2925; color: #fff; }
-
-        #map { flex-grow: 1; background: #111; }
-
-        /* UI Helpers */
-        #status-bar { 
-            padding: 5px 15px; 
-            background: #10b981; 
-            color: #000; 
-            font-size: 11px; 
-            font-weight: bold; 
-            position: fixed; 
-            bottom: 0; 
-            right: 0; 
-            z-index: 2000; 
-            border-top-left-radius: 8px; 
+        /* UI Elements */
+        #status-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--accent);
+            color: #000;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 2000;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            display: none;
         }
 
-        /* Scrollbar */
-        #catalog::-webkit-scrollbar { width: 5px; }
-        #catalog::-webkit-scrollbar-thumb { background: #444; border-radius: 10px; }
+        /* Leaflet Overrides */
+        .leaflet-popup-content-wrapper { background: #262626; color: white; border-radius: 8px; }
+        .leaflet-popup-tip { background: #262626; }
+        .leaflet-control-layers { background: #262626 !important; color: white !important; border: none !important; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <strong style="color: #10b981; margin-right: 10px;">MTL DATA</strong>
-    <input type="text" id="apiSearch" placeholder="Search (e.g. WiFi, Water, Parks)...">
-    <button id="searchBtn">Search</button>
+    <div class="logo">MTL SURVIVAL</div>
+    <input type="text" id="apiSearch" placeholder="Search Montreal Open Data (e.g. WiFi, Rinks, Water, Parks)...">
+    <button class="btn" id="searchBtn">SEARCH</button>
+    <button class="btn btn-clear" onclick="clearMap()">CLEAR</button>
 </div>
 
-<div class="main-container">
-    <div id="catalog">
-        <h4 style="color:#10b981; margin-top:0;">Dataset Catalog</h4>
-        <div id="catalogList">Connecting to Portal...</div>
+<div class="main-content">
+    <div id="sidebar">
+        <div class="sidebar-header">
+            <h3 style="margin:0; font-size: 16px;">Available Datasets</h3>
+        </div>
+        <div id="catalogList">
+            <div style="padding: 20px; text-align: center; color: #666;">
+                Enter a search term above to browse the city's live data portal.
+            </div>
+        </div>
     </div>
     <div id="map"></div>
 </div>
 
-<div id="status-bar">Ready</div>
+<div id="status-indicator">PROCESSING...</div>
 
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pmtiles@2.11.0/dist/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/protomaps-leaflet@4.0.1/dist/protomaps-leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.js"></script>
 
 <script>
     let map, layerControl;
-    let loadedLayers = {}; 
+    let activeLayers = {};
     
-    // Montreal MTM Zone 8 Projection String
+    // Montreal Local Surveying System (MTM8) to GPS (WGS84)
     const MTM8 = "+proj=tmerc +lat_0=0 +lon_0=-73.5 +k=0.9999 +x_0=304800 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs";
     const WGS84 = "WGS84";
 
-    function updateStatus(msg) { document.getElementById('status-bar').innerText = msg; }
-
-    function initMap() {
-        // Initialize Map
-        map = L.map('map').setView([45.5088, -73.5878], 12);
-        
-        // Base Layer (Dark Mode)
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
-        }).addTo(map);
-
-        layerControl = L.control.layers({}, {}, { collapsed: false }).addTo(map);
-        
-        // Load initial Catalog
-        fetchCatalog("");
+    function showStatus(msg) {
+        const el = document.getElementById('status-indicator');
+        el.innerText = msg;
+        el.style.display = 'block';
     }
 
-    async function fetchCatalog(query = "") {
-        const listContainer = document.getElementById('catalogList');
-        listContainer.innerHTML = "Querying Portal...";
-        updateStatus("Searching...");
+    function hideStatus() {
+        document.getElementById('status-bar')?.style?.display === 'none' 
+        document.getElementById('status-indicator').style.display = 'none';
+    }
 
-        // Automatically translate "Water" to "Eau" etc. for better MTL results
-        let cleanQuery = query.toLowerCase();
-        if(cleanQuery === "water") cleanQuery = "eau";
-        if(cleanQuery === "parks") cleanQuery = "parcs";
-        if(cleanQuery === "skating") cleanQuery = "patinoires";
+    // Initialize Map
+    function initMap() {
+        map = L.map('map', { zoomControl: false }).setView([45.55, -73.61], 12);
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-        const searchQuery = cleanQuery ? `q=*${encodeURIComponent(cleanQuery)}*+AND+res_format:CSV` : `q=res_format:CSV`;
-        const url = `https://donnees.montreal.ca/api/3/action/package_search?${searchQuery}&rows=50`;
+        // Standard Online Layer
+        const osm = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap'
+        }).addTo(map);
+
+        // Offline Protomaps Layer (Requires your .pmtiles file in the same folder)
+        try {
+            const p = protomapsL.leafletLayer({
+                url: './montreal.pmtiles',
+                theme: 'dark'
+            });
+            layerControl = L.control.layers({ "Online (Dark)": osm, "Offline (Local)": p }, {}, { collapsed: false, position: 'topright' }).addTo(map);
+        } catch (e) {
+            console.warn("Protomaps local file not found, using online layers only.");
+            layerControl = L.control.layers({ "Online (Dark)": osm }, {}, { collapsed: false, position: 'topright' }).addTo(map);
+        }
+    }
+
+    // Portal Discovery
+    async function searchPortal() {
+        const query = document.getElementById('apiSearch').value.trim();
+        if (!query) return;
+
+        showStatus("SEARCHING PORTAL...");
+        const list = document.getElementById('catalogList');
+        list.innerHTML = "";
+
+        // Auto-translate logic for better results in Montreal's French portal
+        let term = query.toLowerCase();
+        const dictionary = {
+            "water": "fontaine", "skating": "patinoire", "rink": "patinoire",
+            "park": "parc", "fire": "pompier", "police": "police", "wifi": "wifi"
+        };
+        const searchTerms = dictionary[term] || term;
 
         try {
+            const url = `https://donnees.montreal.ca/api/3/action/package_search?q=${encodeURIComponent(searchTerms)}&rows=30`;
             const res = await fetch(url);
             const data = await res.json();
-            listContainer.innerHTML = "";
 
-            if (!data.result.results.length) {
-                listContainer.innerHTML = "No results found.";
-                return;
+            if (data.result.results.length === 0) {
+                list.innerHTML = `<div style="padding:20px; color:#ef4444;">No results found for "${query}". Try French terms.</div>`;
             }
 
             data.result.results.forEach(pkg => {
-                const csvRes = pkg.resources.find(r => r.format.toLowerCase() === 'csv');
-                if (csvRes) {
+                // We prefer CSV and GeoJSON for web mapping
+                const resource = pkg.resources.find(r => ['csv', 'geojson'].includes(r.format.toLowerCase()));
+                if (resource) {
                     const item = document.createElement('div');
                     item.className = 'catalog-item';
-                    item.innerHTML = `<strong>${pkg.title}</strong>`;
-                    item.onclick = () => toggleLayer(pkg.title, csvRes.id, item);
-                    listContainer.appendChild(item);
+                    item.innerHTML = `<strong>${pkg.title}</strong><small>${resource.format} • ${pkg.organization.title}</small>`;
+                    item.onclick = () => toggleLayer(pkg.title, resource.id, item);
+                    list.appendChild(item);
                 }
             });
-            updateStatus(`Found ${data.result.results.length} items`);
         } catch (e) {
-            listContainer.innerHTML = "CORS / Connection Error.";
-            updateStatus("Error Connecting");
+            list.innerHTML = `<div style="padding:20px; color:#ef4444;">Connection error to Montreal Portal.</div>`;
+        } finally {
+            hideStatus();
         }
     }
 
+    // Universal Data Parser (The "Engine")
     async function toggleLayer(title, resourceId, element) {
-        if (loadedLayers[resourceId]) {
-            map.removeLayer(loadedLayers[resourceId].group);
-            layerControl.removeLayer(loadedLayers[resourceId].group);
-            delete loadedLayers[resourceId];
+        if (activeLayers[resourceId]) {
+            map.removeLayer(activeLayers[resourceId]);
+            layerControl.removeOverlay(activeLayers[resourceId]);
+            delete activeLayers[resourceId];
             element.classList.remove('active');
-            updateStatus("Layer Removed");
-        } else {
-            element.classList.add('active');
-            updateStatus("Plotting points...");
-            const group = await fetchPoints(resourceId, title);
-            if (group) {
-                loadedLayers[resourceId] = { group, title };
-                updateStatus(`Active: ${title}`);
+            return;
+        }
+
+        showStatus("DOWNLOADING DATA...");
+        element.classList.add('active');
+
+        try {
+            const url = `https://donnees.montreal.ca/api/3/action/datastore_search?resource_id=${resourceId}&limit=5000`;
+            const res = await fetch(url);
+            const data = await res.json();
+            
+            const group = L.layerGroup();
+            let pointsFound = 0;
+
+            data.result.records.forEach(record => {
+                let lat, lon;
+
+                // Case 1: GeoJSON Geometry objects (Common in Rink/Park data)
+                if (record.geometry) {
+                    try {
+                        const geom = (typeof record.geometry === 'string') ? JSON.parse(record.geometry) : record.geometry;
+                        if (geom.coordinates) {
+                            [lon, lat] = geom.coordinates;
+                        }
+                    } catch(e) {}
+                } 
+                // Case 2: Standard column names
+                if (!lat || !lon) {
+                    lon = parseFloat(record.LONGITUDE || record.Longitude || record.lon || record.x || record.X || record.LONG);
+                    lat = parseFloat(record.LATITUDE || record.Latitude || record.lat || record.y || record.Y || record.LAT);
+                }
+
+                if (!isNaN(lat) && !isNaN(lon)) {
+                    // MTM8 to GPS Conversion
+                    // If lon is a huge number (e.g. 300000), it's Montreal's local meter system
+                    if (Math.abs(lon) > 1000) {
+                        const converted = proj4(MTM8, WGS84, [lon, lat]);
+                        lon = converted[0];
+                        lat = converted[1];
+                    }
+
+                    // Only plot if it's actually in the Montreal region
+                    if (lat > 45 && lat < 46 && lon > -75 && lon < -73) {
+                        L.circleMarker([lat, lon], {
+                            radius: 7,
+                            fillColor: '#10b981',
+                            color: '#fff',
+                            weight: 1,
+                            fillOpacity: 0.8
+                        }).bindPopup(`
+                            <div style="color:white;">
+                                <b style="color:#10b981">${title}</b><br>
+                                ${record.NOM || record.NOM_ATOME || record.NOM_PARC || record.Nom || "Location Information"}
+                            </div>
+                        `).addTo(group);
+                        pointsFound++;
+                    }
+                }
+            });
+
+            if (pointsFound > 0) {
+                group.addTo(map);
+                layerControl.addOverlay(group, title);
+                activeLayers[resourceId] = group;
+                showStatus(`PLOTTED ${pointsFound} POINTS`);
+                setTimeout(hideStatus, 2000);
             } else {
                 element.classList.remove('active');
-                updateStatus("No coordinate data found.");
+                alert("This dataset contains no valid coordinate data for mapping.");
+                hideStatus();
             }
+
+        } catch (e) {
+            console.error(e);
+            element.classList.remove('active');
+            hideStatus();
         }
     }
 
-    async function fetchPoints(resourceId, label) {
-        const apiUrl = `https://donnees.montreal.ca/api/3/action/datastore_search?resource_id=${resourceId}&limit=4000`;
-        const group = L.layerGroup();
-        try {
-            const res = await fetch(apiUrl);
-            const data = await res.json();
-            let count = 0;
-            
-            data.result.records.forEach(record => {
-                let x = parseFloat(record.X || record.x || record.LONGITUDE || record.lon || record.Longitude);
-                let y = parseFloat(record.Y || record.y || record.LATITUDE || record.lat || record.Latitude);
-
-                if (!isNaN(x) && !isNaN(y)) {
-                    let lat = y, lon = x;
-                    if (x > 1000) { // Check for MTM8 (Meters)
-                        const conv = proj4(MTM8, WGS84, [x, y]);
-                        lon = conv[0]; lat = conv[1];
-                    }
-                    if (lat > 45 && lat < 46) {
-                        L.circleMarker([lat, lon], { radius: 6, fillColor: "#10b981", color: "#fff", weight: 1, fillOpacity: 0.8 })
-                         .bindPopup(`<strong>${label}</strong><br>${record.NOM || record.NOM_TEMP || "Resource"}`)
-                         .addTo(group);
-                        count++;
-                    }
-                }
-            });
-
-            if (count > 0) {
-                group.addTo(map);
-                layerControl.addOverlay(group, label);
-                return group;
-            }
-            return null;
-        } catch (e) { return null; }
+    function clearMap() {
+        for (let id in activeLayers) {
+            map.removeLayer(activeLayers[id]);
+            layerControl.removeOverlay(activeLayers[id]);
+        }
+        activeLayers = {};
+        document.querySelectorAll('.catalog-item').forEach(i => i.classList.remove('active'));
     }
 
-    // Enter Key Search Support
-    document.getElementById('apiSearch').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') fetchCatalog(e.target.value);
-    });
-
-    document.getElementById('searchBtn').addEventListener('click', () => {
-        fetchCatalog(document.getElementById('apiSearch').value);
-    });
+    // Interaction Listeners
+    document.getElementById('searchBtn').onclick = searchPortal;
+    document.getElementById('apiSearch').onkeypress = (e) => { if (e.key === 'Enter') searchPortal(); };
 
     window.onload = initMap;
 </script>
