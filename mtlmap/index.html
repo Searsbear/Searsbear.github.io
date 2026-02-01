@@ -46,10 +46,15 @@
 
             L.control.layers(baseMaps).addTo(map);
 
-            // YES Montreal Marker
-            L.marker([45.5005, -73.5716]).addTo(map)
-                .bindPopup("<b>YES Montreal</b>")
-        }
+            const locations = [
+                { name: "YES Montreal", lat: 45.5005, lon: -73.5716 },
+            ];
+
+            locations.forEach(loc => {
+                L.marker([loc.lat, loc.lon])
+                  .addTo(map)
+                  .bindPopup(loc.name);
+            });
 
         window.onload = initMap;
     </script>
