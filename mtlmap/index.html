@@ -3,71 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Montreal Survival Map - Auto-Discovery Edition</title>
+    <title>Montreal Survival Map - Master Catalog</title>
     
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
     
     <style>
-        body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a1a; color: white; }
+        body { margin: 0; display: flex; flex-direction: column; height: 100vh; font-family: 'Segoe UI', sans-serif; background: #121212; color: #e0e0e0; }
         
-        .header {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
+        /* Header & Search */
+        .header { padding: 15px; background: #1f2937; display: flex; gap: 15px; align-items: center; z-index: 1001; border-bottom: 2px solid #374151; }
+        #apiSearch { flex-grow: 1; padding: 12px; border-radius: 6px; border: 1px solid #4b5563; background: #374151; color: white; font-size: 15px; }
+        
+        .main-container { display: flex; flex-grow: 1; overflow: hidden; }
+        
+        /* Sidebar Catalog */
+        #catalog { 
+            width: 350px; 
+            background: #181818; 
+            border-right: 1px solid #333; 
+            overflow-y: auto; 
             padding: 15px;
-            background: #2c3e50;
-            align-items: center;
-            position: relative;
-            z-index: 1001;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
         }
+        .catalog-title { color: #10b981; margin-top: 0; font-size: 18px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        
+        #catalogList { flex-grow: 1; }
 
-        #apiSearch {
-            flex-grow: 1;
+        .catalog-item {
             padding: 12px;
+            margin-bottom: 8px;
+            background: #262626;
             border-radius: 6px;
-            border: none;
-            background: #333;
-            color: white;
-            font-size: 16px;
-            outline: none;
-        }
-
-        #apiSearch:focus { border: 2px solid #27ae60; }
-
-        button {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 6px;
+            font-size: 13px;
             cursor: pointer;
-            font-weight: bold;
-            transition: background 0.2s;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
         }
+        .catalog-item:hover { background: #333; border-color: #10b981; }
+        .catalog-item.active { border-left: 5px solid #10b981; background: #1e2925; color: #fff; }
+        .catalog-item small { display: block; color: #9ca3af; margin-top: 4px; font-style: italic; }
 
-        .btn-search { background: #27ae60; color: white; }
-        .btn-search:hover { background: #2ecc71; }
+        /* Map Area */
+        #map { flex-grow: 1; background: #111; }
+        
+        #status-bar { padding: 5px 15px; background: #10b981; color: #000; font-size: 12px; font-weight: bold; position: fixed; bottom: 0; right: 0; z-index: 1002; border-top-left-radius: 8px; }
 
-        .btn-clear { background: #c0392b; color: white; }
-        .btn-clear:hover { background: #e74c3c; }
-
-        #map { height: calc(100vh - 85px); width: 100%; background: #222; }
-        #status { font-size: 13px; color: #f1c40f; margin-left: 10px; font-weight: bold; }
-
-        .leaflet-popup-content-wrapper { background: #333; color: white; }
-        .leaflet-popup-tip { background: #333; }
+        /* Scrollbar Styling */
+        #catalog::-webkit-scrollbar { width: 6px; }
+        #catalog::-webkit-scrollbar-thumb { background: #444; border-radius: 10px; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <strong>MTL Map:</strong>
-    <input type="text" id="apiSearch" placeholder="Search (e.g. Skating, Parks, Clinics, Fire)...">
-    <button class="btn-search" onclick="searchCKAN()">Search</button>
-    <button class="btn-clear" onclick="clearExtraLayers()">Clear Search</button>
-    <span id="status">Syncing with Montreal Portal...</span>
+    <strong style="color: #10b981; font-size: 1.2rem;">MTL DATA MASTER</strong>
+    <input type="text" id="apiSearch" placeholder="Search the catalog (e.g., Water, Skating, Parks, Fire)..." onkeyup="filterCatalog()">
 </div>
 
-<div id="map"></div>
+<div class="main-container">
+    <div id="catalog">
+        <h4 class="catalog-title">Montreal Catalog</h4>
+        <div id="catalogList">Initializing scan...</div>
+    </div>
+    <div id="map"></div>
+</div>
+
+<div id="status-bar">Ready</div>
 
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pmtiles@2.11.0/dist/index.js"></script>
@@ -76,148 +78,135 @@
 
 <script>
     let map, layerControl;
-    let extraLayers = [];
-
-    // Projection string for Montreal's MTM Zone 8 (NAD83)
+    let loadedLayers = {}; 
     const MTM8 = "+proj=tmerc +lat_0=0 +lon_0=-73.5 +k=0.9999 +x_0=304800 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs";
     const WGS84 = "WGS84";
 
-    // Slugs are more stable than Resource IDs. 
-    // The script will find the current Resource ID automatically on load.
-    const coreDatasets = [
-        { label: "Police Stations", slug: "postes-de-quartier", color: "#f43f5e" },
-        { label: "Fire Stations", slug: "casernes-de-pompiers", color: "#e67e22" },
-        { label: "Drinking Water", slug: "fontaines-a-boire", color: "#3498db" }
-    ];
+    function updateStatus(msg) { document.getElementById('status-bar').innerText = msg; }
 
     function initMap() {
         if (typeof protomapsL === 'undefined') { setTimeout(initMap, 200); return; }
         
         map = L.map('map').setView([45.5088, -73.5878], 12);
         
+        // Base Layers
         const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
         const pmtiles = protomapsL.leafletLayer({ url: "./montreal.pmtiles", theme: "dark" });
 
-        layerControl = L.control.layers({ 
-            "Online (OSM)": osm, 
-            "Offline (PMTiles)": pmtiles 
-        }, {}, { collapsed: false }).addTo(map);
+        layerControl = L.control.layers({ "Online": osm, "Offline": pmtiles }, {}, { collapsed: false }).addTo(map);
 
-        // Start Discovery for core layers
-        loadCoreData();
+        buildCatalog();
     }
 
-    async function loadCoreData() {
-        for (const item of coreDatasets) {
-            await findAndLoad(item.slug, item.label, item.color, false);
-        }
-        document.getElementById('status').innerText = "All systems green.";
-    }
+    async function buildCatalog() {
+        const listContainer = document.getElementById('catalogList');
+        updateStatus("Fetching data packages...");
 
-    async function searchCKAN() {
-        let query = document.getElementById('apiSearch').value.trim();
-        if (!query) return;
+        // Fetching top 300 results that include CSV (the most map-friendly format)
+        const url = `https://donnees.montreal.ca/api/3/action/package_search?q=format:CSV&rows=300`;
         
-        const status = document.getElementById('status');
-        status.style.display = 'inline';
-        status.innerText = "Translating...";
-
         try {
-            // English to French Translation Layer
-            const tUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(query)}&langpair=en|fr`;
-            const tRes = await fetch(tUrl);
-            const tData = await tRes.json();
-            const frenchQuery = tData.responseData.translatedText || query;
+            const res = await fetch(url);
+            const data = await res.json();
+            listContainer.innerHTML = "";
 
-            status.innerText = `Searching portal for "${frenchQuery}"...`;
-            await findAndLoad(frenchQuery, query, "#f1c40f", true);
+            data.result.results.forEach(pkg => {
+                const csvRes = pkg.resources.find(r => r.format.toLowerCase() === 'csv');
+                if (csvRes) {
+                    const item = document.createElement('div');
+                    item.className = 'catalog-item';
+                    item.innerHTML = `<strong>${pkg.title}</strong><small>${pkg.organization.title}</small>`;
+                    item.onclick = () => toggleLayer(pkg.title, csvRes.id, item);
+                    listContainer.appendChild(item);
+                }
+            });
+            updateStatus("300+ Datasets Loaded");
         } catch (e) {
-            console.error("Search failed:", e);
-            status.innerText = "Search failed.";
+            listContainer.innerHTML = "Portal connection failed.";
         }
     }
 
-    // Dynamic Discovery: Finds the ID based on the keyword/slug
-    async function findAndLoad(searchTerms, label, color, isExtra) {
-        try {
-            const pUrl = `https://donnees.montreal.ca/api/3/action/package_search?q=${encodeURIComponent(searchTerms)}&rows=1`;
-            const pRes = await fetch(pUrl);
-            const pData = await pRes.json();
-
-            if (pData.result.results.length > 0) {
-                const pkg = pData.result.results[0];
-                // Look specifically for the CSV resource inside the package
-                const csvRes = pkg.resources.find(r => r.format.toLowerCase() === 'csv');
-                
-                if (csvRes) {
-                    await fetchPoints(csvRes.id, label, color, isExtra);
-                } else {
-                    if (isExtra) alert(`Dataset "${pkg.title}" found, but no CSV map data available.`);
-                }
+    async function toggleLayer(title, resourceId, element) {
+        if (loadedLayers[resourceId]) {
+            map.removeLayer(loadedLayers[resourceId].group);
+            layerControl.removeLayer(loadedLayers[resourceId].group);
+            delete loadedLayers[resourceId];
+            element.classList.remove('active');
+            updateStatus(`Removed: ${title}`);
+        } else {
+            element.classList.add('active');
+            updateStatus(`Loading points for ${title}...`);
+            const group = await fetchPoints(resourceId, title);
+            if (group) {
+                loadedLayers[resourceId] = { group, title };
+                updateStatus(`Active: ${title}`);
             } else {
-                if (isExtra) alert("No results found on the Montreal Portal.");
+                element.classList.remove('active');
+                updateStatus("Error: No valid map data found.");
             }
-        } catch (e) { console.error("Discovery error:", e); }
+        }
     }
 
-    // Fetch actual data from the Datastore API
-    async function fetchPoints(resourceId, label, color, isExtra) {
-        const apiUrl = `https://donnees.montreal.ca/api/3/action/datastore_search?resource_id=${resourceId}&limit=3000`;
+    async function fetchPoints(resourceId, label) {
+        // Montreal Datastore Search
+        const apiUrl = `https://donnees.montreal.ca/api/3/action/datastore_search?resource_id=${resourceId}&limit=5000`;
         const group = L.layerGroup();
-
+        
         try {
             const res = await fetch(apiUrl);
             const data = await res.json();
-            if (!data.success) return;
+            let count = 0;
 
             data.result.records.forEach(record => {
-                // Coordinate Hunter: Checks Lat/Lon and X/Y
+                // Coordinate Hunter: Checks Lat/Lon, x/y, and X/Y
                 let x = parseFloat(record.X || record.x || record.LONGITUDE || record.lon || record.Longitude);
                 let y = parseFloat(record.Y || record.y || record.LATITUDE || record.lat || record.Latitude);
 
                 if (!isNaN(x) && !isNaN(y)) {
                     let lat = y, lon = x;
                     
-                    // If X is massive, it's MTM8 meter-based coords
+                    // Automatic MTM8 Conversion for Meter-based coords (like skating rinks)
                     if (x > 1000) {
-                        try {
-                            const conv = proj4(MTM8, WGS84, [x, y]);
-                            lon = conv[0]; lat = conv[1];
-                        } catch(e) { return; }
+                        const conv = proj4(MTM8, WGS84, [x, y]);
+                        lon = conv[0]; lat = conv[1];
                     }
 
-                    // Safety check to ensure we are in the Montreal bounding box
+                    // Only plot if it falls within the Montreal Island bounding area
                     if (lat > 45.3 && lat < 45.8) {
-                        L.circleMarker([lat, lon], {
-                            radius: 8,
-                            fillColor: color,
-                            color: "#fff",
-                            weight: 2,
-                            fillOpacity: 0.8
+                        L.circleMarker([lat, lon], { 
+                            radius: 7, 
+                            fillColor: "#10b981", 
+                            color: "#fff", 
+                            weight: 1, 
+                            fillOpacity: 0.8 
                         })
                         .bindPopup(`<strong>${label}</strong><br>${record.NOM || record.NOM_TEMP || record.Nom || "Resource"}`)
                         .addTo(group);
+                        count++;
                     }
                 }
             });
 
-            group.addTo(map);
-            layerControl.addOverlay(group, label);
-            if (isExtra) extraLayers.push({ group, name: label });
-        } catch (e) { console.error("Fetch error:", e); }
+            if (count > 0) {
+                group.addTo(map);
+                layerControl.addOverlay(group, label);
+                return group;
+            }
+            return null;
+        } catch (e) { return null; }
     }
 
-    function clearExtraLayers() {
-        extraLayers.forEach(l => {
-            map.removeLayer(l.group);
-            layerControl.removeLayer(l.group);
+    // Live filter of the sidebar list
+    function filterCatalog() {
+        const query = document.getElementById('apiSearch').value.toLowerCase();
+        const items = document.querySelectorAll('.catalog-item');
+        items.forEach(item => {
+            const text = item.innerText.toLowerCase();
+            item.style.display = text.includes(query) ? 'block' : 'none';
         });
-        extraLayers = [];
-        document.getElementById('apiSearch').value = "";
     }
 
     window.onload = initMap;
 </script>
-
 </body>
 </html>
