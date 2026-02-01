@@ -3,63 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Montreal Survival Map - CKAN Live</title>
+    <title>MTL Survival Map - CKAN Ultra</title>
     
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
     
     <style>
-        body { margin: 0; padding: 0; font-family: sans-serif; background: #111; color: white; }
+        body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a1a; color: white; }
         
-        /* Dashboard Styling */
-        .dashboard {
+        /* Search Bar Area */
+        .header {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
             padding: 15px;
-            background: #222;
-            border-bottom: 2px solid #444;
+            background: #2c3e50;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
             align-items: center;
+            position: relative;
+            z-index: 1001;
         }
 
         #apiSearch {
             flex-grow: 1;
-            padding: 8px 12px;
+            padding: 10px;
             border-radius: 4px;
-            border: 1px solid #555;
+            border: 1px solid #444;
             background: #333;
             color: white;
-            min-width: 250px;
+            font-size: 14px;
         }
 
         button {
-            padding: 8px 15px;
+            padding: 10px 18px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
             font-weight: bold;
-            transition: 0.2s;
+            transition: 0.3s;
         }
 
-        .btn-search { background: #3498db; color: white; }
-        .btn-search:hover { background: #2980b9; }
+        .btn-search { background: #27ae60; color: white; }
+        .btn-search:hover { background: #2ecc71; }
 
-        .btn-clear { background: #e74c3c; color: white; }
-        .btn-clear:hover { background: #c0392b; }
+        .btn-clear { background: #c0392b; color: white; }
+        .btn-clear:hover { background: #e74c3c; }
 
-        #map { height: calc(100vh - 75px); width: 100%; }
+        #map { height: calc(100vh - 75px); width: 100%; background: #222; }
 
-        /* Custom Popup Style */
-        .leaflet-popup-content-wrapper { background: #333; color: white; border-radius: 8px; }
-        .leaflet-popup-tip { background: #333; }
+        /* Status Indicator */
+        #status { font-size: 12px; color: #f1c40f; margin-left: 10px; display: none; }
     </style>
 </head>
 <body>
 
-<div class="dashboard">
-    <strong>Montreal CKAN Explorer:</strong>
-    <input type="text" id="apiSearch" placeholder="Search (e.g. Bixi, WiFi, Arbres, Patinoires)...">
+<div class="header">
+    <strong>MTL Survival Map:</strong>
+    <input type="text" id="apiSearch" placeholder="Type in English or French (e.g. Skating, Water, Police)...">
     <button class="btn-search" onclick="searchCKAN()">Search & Add</button>
-    <button class="btn-clear" onclick="clearExtraLayers()">Clear Search Layers</button>
+    <button class="btn-clear" onclick="clearExtraLayers()">Clear Search</button>
+    <span id="status">Translating & Searching...</span>
 </div>
 
 <div id="map"></div>
@@ -71,95 +73,92 @@
 <script>
     let map;
     let layerControl;
-    let extraLayers = []; // To track dynamically added layers
+    let extraLayers = [];
 
-    // 1. SURVIVAL CORE CONFIGURATION
+    // 1. SURVIVAL CORE (Hardcoded Resource IDs)
     const survivalResources = [
-        { name: "Police Stations", id: "67010a30-6b60-449b-8254-2b6299b92784", color: "#f43f5e", type: "Crisis" },
-        { name: "Fire Stations", id: "054619a9-3079-43c2-985f-8700a4d44093", color: "#f43f5e", type: "Crisis" },
-        { name: "Drinking Water", id: "5f1da76b-2788-4ca4-bf23-f39b1a030043", color: "#3498db", type: "Life" }
+        { name: "Police Stations", id: "67010a30-6b60-449b-8254-2b6299b92784", color: "#f43f5e" },
+        { name: "Fire Stations", id: "054619a9-3079-43c2-985f-8700a4d44093", color: "#e67e22" },
+        { name: "Drinking Fountains", id: "5f1da76b-2788-4ca4-bf23-f39b1a030043", color: "#3498db" }
     ];
 
-    // Initialize Map
     function initMap() {
-        // Fallback for Protomaps loading
         if (typeof protomapsL === 'undefined') { setTimeout(initMap, 200); return; }
 
         map = L.map('map').setView([45.5088, -73.5878], 12);
 
         // Base Layers
         const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-        const pmtiles = protomapsL.leafletLayer({ 
-            url: "./montreal.pmtiles", 
-            theme: "dark" // Survival theme
-        });
+        const pmtiles = protomapsL.leafletLayer({ url: "./montreal.pmtiles", theme: "dark" });
 
-        // Layer Control
         layerControl = L.control.layers({ 
             "Online (OSM)": osm, 
             "Offline (PMTiles)": pmtiles 
         }, {}, { collapsed: false }).addTo(map);
 
-        // Load the Survival Core immediately
-        survivalResources.forEach(res => {
-            loadFromCKAN(res, false);
-        });
+        // Auto-load core layers
+        survivalResources.forEach(res => loadFromCKAN(res, false));
     }
 
-    // 2. CKAN SEARCH FUNCTION
+    // 2. SEARCH WITH TRANSLATION & WILDCARDS
     async function searchCKAN() {
-        const query = document.getElementById('apiSearch').value;
+        let query = document.getElementById('apiSearch').value.trim();
         if (!query) return;
 
-        // Search the Montreal package catalog
-        const searchUrl = `https://donnees.montreal.ca/api/3/action/package_search?q=${encodeURIComponent(query)}&rows=1`;
-        
+        const status = document.getElementById('status');
+        status.style.display = 'inline';
+
         try {
+            // STEP A: English to French Translation
+            const tUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(query)}&langpair=en|fr`;
+            const tRes = await fetch(tUrl);
+            const tData = await tRes.json();
+            const frenchQuery = tData.responseData.translatedText || query;
+
+            // STEP B: Wildcard Search on Montreal Portal
+            const searchUrl = `https://donnees.montreal.ca/api/3/action/package_search?q=*${encodeURIComponent(frenchQuery)}*&rows=3`;
             const res = await fetch(searchUrl);
             const data = await res.json();
             
             if (data.result.results.length > 0) {
                 const pkg = data.result.results[0];
-                // Locate the CSV resource (easiest to parse for lat/lon)
+                // Look for CSV first (best for datastore_search)
                 const csvRes = pkg.resources.find(r => r.format.toLowerCase() === 'csv');
                 
                 if (csvRes) {
-                    const newLayer = { 
-                        name: pkg.title, 
-                        id: csvRes.id, 
-                        color: "#f1c40f", 
-                        type: "Search Result" 
-                    };
-                    loadFromCKAN(newLayer, true);
+                    loadFromCKAN({ name: pkg.title, id: csvRes.id, color: "#f1c40f" }, true);
                 } else {
-                    alert("Found dataset, but no compatible CSV resource exists for mapping.");
+                    alert(`Found "${pkg.title}", but it's not in a simple coordinate format.`);
                 }
             } else {
-                alert("No results found for that search term.");
+                alert("No results. Try simpler words like 'Park', 'Water', or 'Hospital'.");
             }
         } catch (e) {
-            console.error("CKAN Search Error:", e);
+            console.error("Search failed", e);
+        } finally {
+            status.style.display = 'none';
         }
     }
 
-    // 3. DATA LOADING & PLOTTING
+    // 3. THE "COORDINATE HUNTER" LOADER
     async function loadFromCKAN(resConfig, isExtra) {
         const group = L.layerGroup();
-        const apiUrl = `https://donnees.montreal.ca/api/3/action/datastore_search?resource_id=${resConfig.id}&limit=1000`;
+        const apiUrl = `https://donnees.montreal.ca/api/3/action/datastore_search?resource_id=${resConfig.id}&limit=2000`;
 
         try {
             const response = await fetch(apiUrl);
             const data = await response.json();
             
             if (data.success) {
-                let count = 0;
+                let foundPoints = 0;
                 data.result.records.forEach(record => {
-                    // Normalize various coordinate field names used by different city depts
-                    const lat = parseFloat(record.LATITUDE || record.lat || record.Latitude);
-                    const lon = parseFloat(record.LONGITUDE || record.lon || record.Longitude);
-                    const name = record.NOM || record.NOM_TEMP || record.Nom || "Resource";
+                    // Coordinates can be hidden in many column names (rinks use X/Y or lat/lon)
+                    let lat = parseFloat(record.LATITUDE || record.lat || record.Latitude || record.Y || record.y);
+                    let lon = parseFloat(record.LONGITUDE || record.lon || record.Longitude || record.X || record.x);
 
-                    if (!isNaN(lat) && !isNaN(lon)) {
+                    // Only plot if the numbers look like Montreal GPS coords (approx 45, -73)
+                    // This prevents plotting MTM8 meter-based coordinates which would appear in the ocean
+                    if (!isNaN(lat) && !isNaN(lon) && lat > 40 && lat < 50) {
                         L.circleMarker([lat, lon], {
                             radius: 8,
                             fillColor: resConfig.color,
@@ -167,34 +166,24 @@
                             weight: 2,
                             fillOpacity: 0.8
                         })
-                        .bindPopup(`
-                            <div style="color:black">
-                                <strong>${name}</strong><br>
-                                <small>Source: ${resConfig.name}</small>
-                            </div>
-                        `)
+                        .bindPopup(`<strong>${resConfig.name}</strong><br>${record.NOM || record.NOM_TEMP || record.Nom || "Resource Point"}`)
                         .addTo(group);
-                        count++;
+                        foundPoints++;
                     }
                 });
 
-                if (count > 0) {
+                if (foundPoints > 0) {
                     group.addTo(map);
                     layerControl.addOverlay(group, resConfig.name);
-                    
-                    if (isExtra) {
-                        extraLayers.push({ group, name: resConfig.name });
-                    }
+                    if (isExtra) extraLayers.push({ group, name: resConfig.name });
                 } else {
-                    console.warn(`Layer ${resConfig.name} loaded but had no valid coordinates.`);
+                    console.warn(`Layer "${resConfig.name}" found but contains no valid GPS coordinates.`);
                 }
             }
-        } catch (e) {
-            console.error(`Fetch error for ${resConfig.name}:`, e);
-        }
+        } catch (e) { console.error("Plotting error", e); }
     }
 
-    // 4. CLEANUP FUNCTION
+    // 4. CLEANUP
     function clearExtraLayers() {
         extraLayers.forEach(layer => {
             map.removeLayer(layer.group);
