@@ -46,16 +46,37 @@
 
             L.control.layers(baseMaps).addTo(map);
 
-            const locations = [
-                { name: "YES Montreal", lat: 45.5005, lon: -73.5716 },
-            ];
+// 5. COLOR-CODED DATA
+    const locations = [
+        { name: "YES Montreal", lat: 45.5005, lon: -73.5716, type: "resource" },
+        { name: "Sample Shelter", lat: 45.5120, lon: -73.5850, type: "shelter" },
+        { name: "Sample Food Bank", lat: 45.5200, lon: -73.5650, type: "food" }
+    ];
 
-            locations.forEach(loc => {
-                L.marker([loc.lat, loc.lon])
-                  .addTo(map)
-                  .bindPopup(loc.name);
-            });
+    // Helper function to pick colors based on 'type'
+    function getColor(type) {
+        switch(type) {
+            case 'resource': return "#3498db"; // Blue
+            case 'shelter':  return "#e74c3c"; // Red
+            case 'food':     return "#2ecc71"; // Green
+            default:         return "#f1c40f"; // Yellow
         }
+    }
+
+    // 6. RENDER MARKERS
+    locations.forEach(loc => {
+        L.circleMarker([loc.lat, loc.lon], {
+            radius: 9,              // Size of the dot
+            fillColor: getColor(loc.type),
+            color: "#ffffff",       // Border color (white)
+            weight: 2,              // Border thickness
+            opacity: 1,
+            fillOpacity: 0.9        // Slight transparency
+        })
+        .addTo(map)
+        .bindPopup(`<strong>${loc.name}</strong><br>Category: ${loc.type}`);
+    });
+}
 
         window.onload = initMap;
     </script>
