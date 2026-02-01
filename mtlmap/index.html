@@ -17,66 +17,90 @@
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pmtiles@2.11.0/dist/index.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/protomaps-leaflet@4.0.1/dist/protomaps-leaflet.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 
     <script>
+        let map;
+        let overlayLayers = {}; // This will hold your CSV categories (e.g., Police, Food)
+
         function initMap() {
             if (typeof protomapsL === 'undefined') {
                 setTimeout(initMap, 200);
                 return;
             }
 
-            const map = L.map('map').setView([45.5088, -73.5878], 13);
+            map = L.map('map').setView([45.5088, -73.5878], 13);
 
-            // 1. ONLINE LAYER: Standard OpenStreetMap
+            // 1. BASE LAYERS
             const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors'
-            }).addTo(map); // Added to map by default
+            }).addTo(map);
 
-            // 2. OFFLINE LAYER: Your local PMTiles
             const pmtilesLayer = protomapsL.leafletLayer({
                 url: "./montreal.pmtiles",
                 theme: "white" 
             });
 
-            // 3. LAYER CONTROL: Allows you to switch between them
             const baseMaps = {
                 "Online (OSM)": osmLayer,
                 "Offline (PMTiles)": pmtilesLayer
             };
 
-            L.control.layers(baseMaps).addTo(map);
+            // 2. CSV LAYER CONFIGURATION
+            // Add your file names here. 'color' is used if the CSV doesn't specify a type.
+            const layerConfigs = [
+                { name: "Police Stations", url: "spvm.csv", defaultType: "legal" },
+                { name: "Resource Centers", url: "resources.csv", defaultType: "Legal" }
+                // To add more, just copy the line above and change the name/url
+            ];
 
-// 5. COLOR-CODED DATA
-    const locations = [
-        { name: "YES Montreal", lat: 45.5005, lon: -73.5716, type: "resource" },
-        { name: "Sample Shelter", lat: 45.5120, lon: -73.5850, type: "shelter" },
-        { name: "Sample Food Bank", lat: 45.5200, lon: -73.5650, type: "food" }
-    ];
+            // 3. COLOR LOGIC (Your Categories)
+            function getColor(type) {
+                switch(type) {
+                    case 'Legal':     return "#10b981"; 
+                    case 'Crisis':    return "#f43f5e";
+                    case 'Transport': return "#f59e0b";  
+                    case 'Life':      return "#94a3b8";
+                    default:          return "#f1c40f"; // Yellow
+                }
+            }
 
-    // Helper function to pick colors based on 'type'
-    function getColor(type) {
-        switch(type) {
-            case 'resource': return "#3498db"; // Blue
-            case 'shelter':  return "#e74c3c"; // Red
-            case 'food':     return "#2ecc71"; // Green
-            default:         return "#f1c40f"; // Yellow
+            // 4. LOAD CSVs
+            layerConfigs.forEach(config => {
+                const group = L.layerGroup();
+                overlayLayers[config.name] = group;
+
+                Papa.parse(config.url, {
+                    download: true,
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        results.data.forEach(row => {
+                            // Support various coordinate names (MTL uses LATITUDE/LONGITUDE)
+                            const lat = parseFloat(row.LATITUDE || row.lat || row.Latitude);
+                            const lon = parseFloat(row.LONGITUDE || row.lon || row.Longitude);
+                            const type = row.type || config.defaultType;
+                            const name = row.name || row.NOM_TEMP || "Unknown Location";
+
+                            if (!isNaN(lat) && !isNaN(lon)) {
+                                L.circleMarker([lat, lon], {
+                                    radius: 9,
+                                    fillColor: getColor(type),
+                                    color: "#ffffff",
+                                    weight: 2,
+                                    fillOpacity: 0.9
+                                })
+                                .addTo(group)
+                                .bindPopup(`<strong>${name}</strong><br>Category: ${type}`);
+                            }
+                        });
+                    }
+                });
+            });
+
+            // 5. ADD CONTROL MENU
+            L.control.layers(baseMaps, overlayLayers, { collapsed: false }).addTo(map);
         }
-    }
-
-    // 6. RENDER MARKERS
-    locations.forEach(loc => {
-        L.circleMarker([loc.lat, loc.lon], {
-            radius: 9,              // Size of the dot
-            fillColor: getColor(loc.type),
-            color: "#ffffff",       // Border color (white)
-            weight: 2,              // Border thickness
-            opacity: 1,
-            fillOpacity: 0.9        // Slight transparency
-        })
-        .addTo(map)
-        .bindPopup(`<strong>${loc.name}</strong><br>Category: ${loc.type}`);
-    });
-}
 
         window.onload = initMap;
     </script>
