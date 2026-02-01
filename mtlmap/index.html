@@ -1,107 +1,211 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>MTL Survival Map - Hybrid</title>
-    <meta charset="utf-8" />
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Montreal Survival Map - CKAN Live</title>
+    
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+    
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; }
-        #map { width: 100%; height: 100vh; background: #f0f0f0; }
+        body { margin: 0; padding: 0; font-family: sans-serif; background: #111; color: white; }
+        
+        /* Dashboard Styling */
+        .dashboard {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 15px;
+            background: #222;
+            border-bottom: 2px solid #444;
+            align-items: center;
+        }
+
+        #apiSearch {
+            flex-grow: 1;
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #555;
+            background: #333;
+            color: white;
+            min-width: 250px;
+        }
+
+        button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .btn-search { background: #3498db; color: white; }
+        .btn-search:hover { background: #2980b9; }
+
+        .btn-clear { background: #e74c3c; color: white; }
+        .btn-clear:hover { background: #c0392b; }
+
+        #map { height: calc(100vh - 75px); width: 100%; }
+
+        /* Custom Popup Style */
+        .leaflet-popup-content-wrapper { background: #333; color: white; border-radius: 8px; }
+        .leaflet-popup-tip { background: #333; }
     </style>
 </head>
 <body>
 
-    <div id="map"></div>
+<div class="dashboard">
+    <strong>Montreal CKAN Explorer:</strong>
+    <input type="text" id="apiSearch" placeholder="Search (e.g. Bixi, WiFi, Arbres, Patinoires)...">
+    <button class="btn-search" onclick="searchCKAN()">Search & Add</button>
+    <button class="btn-clear" onclick="clearExtraLayers()">Clear Search Layers</button>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/pmtiles@2.11.0/dist/index.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/protomaps-leaflet@4.0.1/dist/protomaps-leaflet.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+<div id="map"></div>
 
-    <script>
-        let map;
-        let overlayLayers = {}; // This will hold your CSV categories (e.g., Police, Food)
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pmtiles@2.11.0/dist/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/protomaps-leaflet@4.0.1/dist/protomaps-leaflet.min.js"></script>
 
-        function initMap() {
-            if (typeof protomapsL === 'undefined') {
-                setTimeout(initMap, 200);
-                return;
-            }
+<script>
+    let map;
+    let layerControl;
+    let extraLayers = []; // To track dynamically added layers
 
-            map = L.map('map').setView([45.5088, -73.5878], 13);
+    // 1. SURVIVAL CORE CONFIGURATION
+    const survivalResources = [
+        { name: "Police Stations", id: "67010a30-6b60-449b-8254-2b6299b92784", color: "#f43f5e", type: "Crisis" },
+        { name: "Fire Stations", id: "054619a9-3079-43c2-985f-8700a4d44093", color: "#f43f5e", type: "Crisis" },
+        { name: "Drinking Water", id: "5f1da76b-2788-4ca4-bf23-f39b1a030043", color: "#3498db", type: "Life" }
+    ];
 
-            // 1. BASE LAYERS
-            const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors'
-            }).addTo(map);
+    // Initialize Map
+    function initMap() {
+        // Fallback for Protomaps loading
+        if (typeof protomapsL === 'undefined') { setTimeout(initMap, 200); return; }
 
-            const pmtilesLayer = protomapsL.leafletLayer({
-                url: "./montreal.pmtiles",
-                theme: "white" 
-            });
+        map = L.map('map').setView([45.5088, -73.5878], 12);
 
-            const baseMaps = {
-                "Online (OSM)": osmLayer,
-                "Offline (PMTiles)": pmtilesLayer
-            };
+        // Base Layers
+        const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        const pmtiles = protomapsL.leafletLayer({ 
+            url: "./montreal.pmtiles", 
+            theme: "dark" // Survival theme
+        });
 
-            // 2. CSV LAYER CONFIGURATION
-            // Add your file names here. 'color' is used if the CSV doesn't specify a type.
-            const layerConfigs = [
-                { name: "Police Stations", url: "pdq.csv", defaultType: "legal" },
-                // To add more, just copy the line above and change the name/url
-            ];
+        // Layer Control
+        layerControl = L.control.layers({ 
+            "Online (OSM)": osm, 
+            "Offline (PMTiles)": pmtiles 
+        }, {}, { collapsed: false }).addTo(map);
 
-            // 3. COLOR LOGIC (Your Categories)
-            function getColor(type) {
-                switch(type) {
-                    case 'Legal':     return "#10b981"; 
-                    case 'Crisis':    return "#f43f5e";
-                    case 'Transport': return "#f59e0b";  
-                    case 'Life':      return "#94a3b8";
-                    default:          return "#f1c40f"; // Yellow
+        // Load the Survival Core immediately
+        survivalResources.forEach(res => {
+            loadFromCKAN(res, false);
+        });
+    }
+
+    // 2. CKAN SEARCH FUNCTION
+    async function searchCKAN() {
+        const query = document.getElementById('apiSearch').value;
+        if (!query) return;
+
+        // Search the Montreal package catalog
+        const searchUrl = `https://donnees.montreal.ca/api/3/action/package_search?q=${encodeURIComponent(query)}&rows=1`;
+        
+        try {
+            const res = await fetch(searchUrl);
+            const data = await res.json();
+            
+            if (data.result.results.length > 0) {
+                const pkg = data.result.results[0];
+                // Locate the CSV resource (easiest to parse for lat/lon)
+                const csvRes = pkg.resources.find(r => r.format.toLowerCase() === 'csv');
+                
+                if (csvRes) {
+                    const newLayer = { 
+                        name: pkg.title, 
+                        id: csvRes.id, 
+                        color: "#f1c40f", 
+                        type: "Search Result" 
+                    };
+                    loadFromCKAN(newLayer, true);
+                } else {
+                    alert("Found dataset, but no compatible CSV resource exists for mapping.");
                 }
+            } else {
+                alert("No results found for that search term.");
             }
+        } catch (e) {
+            console.error("CKAN Search Error:", e);
+        }
+    }
 
-            // 4. LOAD CSVs
-            layerConfigs.forEach(config => {
-                const group = L.layerGroup();
-                overlayLayers[config.name] = group;
+    // 3. DATA LOADING & PLOTTING
+    async function loadFromCKAN(resConfig, isExtra) {
+        const group = L.layerGroup();
+        const apiUrl = `https://donnees.montreal.ca/api/3/action/datastore_search?resource_id=${resConfig.id}&limit=1000`;
 
-                Papa.parse(config.url, {
-                    download: true,
-                    header: true,
-                    skipEmptyLines: true,
-                    complete: function(results) {
-                        results.data.forEach(row => {
-                            // Support various coordinate names (MTL uses LATITUDE/LONGITUDE)
-                            const lat = parseFloat(row.LATITUDE || row.lat || row.Latitude);
-                            const lon = parseFloat(row.LONGITUDE || row.lon || row.Longitude);
-                            const type = row.type || config.defaultType;
-                            const name = row.name || row.NOM_TEMP || "Unknown Location";
+        try {
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+            
+            if (data.success) {
+                let count = 0;
+                data.result.records.forEach(record => {
+                    // Normalize various coordinate field names used by different city depts
+                    const lat = parseFloat(record.LATITUDE || record.lat || record.Latitude);
+                    const lon = parseFloat(record.LONGITUDE || record.lon || record.Longitude);
+                    const name = record.NOM || record.NOM_TEMP || record.Nom || "Resource";
 
-                            if (!isNaN(lat) && !isNaN(lon)) {
-                                L.circleMarker([lat, lon], {
-                                    radius: 9,
-                                    fillColor: getColor(type),
-                                    color: "#ffffff",
-                                    weight: 2,
-                                    fillOpacity: 0.9
-                                })
-                                .addTo(group)
-                                .bindPopup(`<strong>${name}</strong><br>Category: ${type}`);
-                            }
-                        });
+                    if (!isNaN(lat) && !isNaN(lon)) {
+                        L.circleMarker([lat, lon], {
+                            radius: 8,
+                            fillColor: resConfig.color,
+                            color: "#fff",
+                            weight: 2,
+                            fillOpacity: 0.8
+                        })
+                        .bindPopup(`
+                            <div style="color:black">
+                                <strong>${name}</strong><br>
+                                <small>Source: ${resConfig.name}</small>
+                            </div>
+                        `)
+                        .addTo(group);
+                        count++;
                     }
                 });
-            });
 
-            // 5. ADD CONTROL MENU
-            L.control.layers(baseMaps, overlayLayers, { collapsed: false }).addTo(map);
+                if (count > 0) {
+                    group.addTo(map);
+                    layerControl.addOverlay(group, resConfig.name);
+                    
+                    if (isExtra) {
+                        extraLayers.push({ group, name: resConfig.name });
+                    }
+                } else {
+                    console.warn(`Layer ${resConfig.name} loaded but had no valid coordinates.`);
+                }
+            }
+        } catch (e) {
+            console.error(`Fetch error for ${resConfig.name}:`, e);
         }
+    }
 
-        window.onload = initMap;
-    </script>
+    // 4. CLEANUP FUNCTION
+    function clearExtraLayers() {
+        extraLayers.forEach(layer => {
+            map.removeLayer(layer.group);
+            layerControl.removeLayer(layer.group);
+        });
+        extraLayers = [];
+        document.getElementById('apiSearch').value = "";
+    }
+
+    window.onload = initMap;
+</script>
+
 </body>
 </html>
